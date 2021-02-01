@@ -1,7 +1,7 @@
 import pygame as pg
 from pygame.locals import *
 from settings import *
-
+pg.font.init()
 
 class GameController(object):
     def __init__(self):
