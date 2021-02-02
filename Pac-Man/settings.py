@@ -1,3 +1,6 @@
+'''
+Stores all settings
+'''
 #screen settings
 TILEWIDTH = 16
 TILEHEIGHT = 16

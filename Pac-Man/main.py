@@ -1,6 +1,7 @@
-import pygame as pg
-from pygame.locals import *
-from settings import *
+import pygame as pg 
+from pygame.locals import * # pylint: disable=unused-import
+from settings import * # pylint: disable=unused-import
+import load_tiles
 pg.font.init()
 
 class GameController(object):
@@ -13,9 +14,16 @@ class GameController(object):
     def setBackground(self):
         self.background = pg.surface.Surface(SCREENSIZE).convert()
         self.background.fill(BLACK)
-    #def startGame(self):
-    
+        self.map_tiles = load_tiles.map_init()
+        self.drawTiles()
 
+    def startGame(self):
+        pass
+
+    def drawTiles(self):
+        for row in self.map_tiles:
+            for tile in row:
+                self.screen.blit(tile.sprite, (tile.x, tile.y))
     #def update(self):
     
     #def renderAll(self):
@@ -23,7 +31,11 @@ class GameController(object):
 
 if __name__ == "__main__":
     game = GameController()
+    clock = pg.time.Clock()
+    FPS = 60
     #game.startGame()
     while True:
-        game.update()
+        #game.update()
+        clock.tick(FPS)
+        pg.display.update()
     
