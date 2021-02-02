@@ -7,11 +7,11 @@ class Pacman(object):
     def __init__(self):
         self.name = "pacman"
         self.color = YELLOW
-        self.position = Vector2(300, 400)
+        self.position = Vector2(200, 400)
         self.direction = STOP
         self.speed = 100
         self.radius = 10
-        self.startPosition()
+        #self.start_Position()
         self.lives = 5
         #self.startImage = self.spritesheet.getImage()
         self.animation = None
@@ -23,7 +23,7 @@ class Pacman(object):
     def update(self, deltatime):
         self.visible = True
         self.position += self.direction*self.speed*deltatime
-        self.updateAnimation(deltatime)
+        self.update_Animations(deltatime)
         direction = self.possibleDirs()
         if direction:
             self.keyMove(direction)
@@ -33,7 +33,7 @@ class Pacman(object):
             self.direction = STOP
 
 
-    def startPosition(self):
+    def start_Position(self):
         pass
 
     def possibleDirs(self):
@@ -61,5 +61,5 @@ class Pacman(object):
     def animations(self):
         pass
 
-    def updateAnimation(self, deltatime):
+    def update_Animations(self, deltatime):
         pass
