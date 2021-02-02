@@ -37,7 +37,7 @@ WALL = tile_load("Wall.png")
 
 class Tile():
     '''
-    Each tile has an own sprite, which is rotated upon assignment,
+    Each tile has its own sprite, which is rotated upon assignment, as well as
     a x and a y coordinate
     '''
     def __init__(self, sprite, rotation, x, y):
@@ -62,27 +62,32 @@ sprite_assign = {
     "o": CLOSED_RIGHT,
     "O": CLOSED_LEFT,
     "D": BLACK_TILE
-}
+}   
 
-def map_init():
+class Map():
     '''
-    Generates all tiles
+    Class containing all map info
     '''
-    map_tiles = []
-    with open(os.path.join(settings.PATH, "assets", "Map", "Sprites.txt"), "r") as s_map, \
-         open(os.path.join(settings.PATH, "assets", "Map", "Rotations.txt"), "r") as r_map:
-        map_lines = s_map.readlines()
-        rotation_lines = r_map.readlines()
-        for row in range(settings.GRIDROWS):
-            row_list = []
-            for col in range(settings.GRIDCOLS):
-                char = map_lines[row][col]
-                rotation = int(rotation_lines[row][col]) * 90
-                row_list.append(Tile(
-                    sprite_assign.get(char, BLACK_TILE),
-                    rotation,
-                    col * settings.TILEWIDTH,
-                    row * settings.TILEHEIGHT
-                ))
-            map_tiles.append(row_list)
-    return map_tiles
+    def __init__(self):
+        self.tiles = []
+    
+    def map_init(self):
+        '''
+        Generates all tiles
+        '''
+        with open(os.path.join(settings.PATH, "assets", "Map", "Sprites.txt"), "r") as s_map, \
+            open(os.path.join(settings.PATH, "assets", "Map", "Rotations.txt"), "r") as r_map:
+            map_lines = s_map.readlines()
+            rotation_lines = r_map.readlines()
+            for row in range(settings.GRIDROWS):
+                row_list = []
+                for col in range(settings.GRIDCOLS):
+                    char = map_lines[row][col]
+                    rotation = int(rotation_lines[row][col]) * 90
+                    row_list.append(Tile(
+                        sprite_assign.get(char, BLACK_TILE),
+                        rotation,
+                        col * settings.TILEWIDTH,
+                        row * settings.TILEHEIGHT
+                    ))
+                self.tiles.append(row_list)

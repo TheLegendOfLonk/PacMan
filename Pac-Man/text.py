@@ -1,5 +1,6 @@
 import pygame as pg
 from vectors import Vector2
+import settings
 
 class Text(object):
     def __init__(self, text, size, color, x, y, show=True):
@@ -13,7 +14,7 @@ class Text(object):
         self.initFont("PressStart2P-vaV7.ttf")
 
     def initFont(self, fontPath):
-        self.font = pg.font.Font(fontpath, self.size)
+        self.font = pg.font.Font(fontPath, self.size)
     
     def render(self, screen):
         if self.show:

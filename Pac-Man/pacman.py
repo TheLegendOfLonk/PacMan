@@ -7,15 +7,16 @@ class Pacman(object):
     def __init__(self):
         self.name = "pacman"
         self.color = YELLOW
-        self.position = Vector2(200, 400)
+        self.position = Vector2(14*16, 27*16-8)
         self.direction = STOP
-        self.speed = 100
+        self.remember_direction = None
+        self.speed = 80
         self.radius = 10
         #self.start_Position()
         self.lives = 5
         #self.startImage = self.spritesheet.getImage()
         self.animation = None
-        self.animations = {}
+        self.animation_list = {}
         #self.animations()        
         self.deathAnimation = False
 
@@ -24,13 +25,25 @@ class Pacman(object):
         self.visible = True
         self.position += self.direction*self.speed*deltatime
         self.update_Animations(deltatime)
+        on_grid = True if (round(self.position.x) - 8) % 16 == 0 and \
+        (round(self.position.y) - 8) % 16 == 0 else False
         direction = self.possibleDirs()
         if direction:
-            self.keyMove(direction)
+            if self.direction == STOP or self.direction.is_parallel(direction) or on_grid:
+                self.direction = direction
+                self.keyMove(self.direction)
+            else:
+                self.remember_direction = direction
+        elif on_grid and self.remember_direction:
+            self.direction = self.remember_direction
+            self.remember_direction = None
+            self.keyMove(self.direction)
+
         else:
-            self.autoMove()
+            pass
+            #self.autoMove()
             #temp
-            self.direction = STOP
+            #self.direction = STOP
 
 
     def start_Position(self):

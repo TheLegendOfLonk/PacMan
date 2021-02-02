@@ -19,3 +19,13 @@ class Vector2(object):
 
     def __mul__(self, scalar):
         return Vector2(self.x * scalar, self.y * scalar)
+    
+    def is_parallel(self, other):
+        try:
+            factor = self.x / other.x
+            if other.y * factor == self.y:
+                return True
+            else:
+                return False
+        except ZeroDivisionError:
+            return False
