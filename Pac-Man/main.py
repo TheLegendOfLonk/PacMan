@@ -34,11 +34,12 @@ class GameController(object):
         self.map_tiles = load_tiles.map_init()
         self.pacman = Pacman()
         self.gameover = False
+        self.run = True
 
 
     def update(self):
         if not self.gameover:
-            deltatime = self.clock.tick(30) / 1000
+            deltatime = self.clock.tick(settings.FPS) / 1000
             self.pacman.update(deltatime)
             self.check_Events()
             self.render()
@@ -46,7 +47,7 @@ class GameController(object):
     def check_Events(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                self.gameover = True
+                self.run = False
     '''
     Draw all tiles in map_tiles
     '''
@@ -70,6 +71,6 @@ class GameController(object):
 if __name__ == "__main__":
     game = GameController()
     game.start_Game()
-    while True:
+    while game.run:
         game.update()
     
