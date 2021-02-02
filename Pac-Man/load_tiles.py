@@ -1,10 +1,24 @@
+'''
+Loads all tile assets, creates a two dimensional array
+with all sprites and assigns a sprite to each tile
+'''
+import os
 import pygame as pg
 import settings
-import os
 
-#load and scale tile 
 def tile_load(img):
-    return pg.transform.scale(pg.image.load("C:\\Users\\Daniel\\Documents\\GitHub\\PacMan\\Pac-Man\\assets\\Tiles\\" + img), (settings.TILEWIDTH, settings.TILEHEIGHT))
+    '''
+    Loads and scales image
+
+    Paramters:
+        img: File name of the tile
+
+    Returns:
+        The loaded and scaled image
+    '''
+    return pg.transform.scale(
+        pg.image.load(os.path.join(settings.PATH, "assets", "Tiles", img)),
+        (settings.TILEWIDTH, settings.TILEHEIGHT))
 
 #define sprites
 BLACK_TILE = tile_load("Black.png")
@@ -55,20 +69,20 @@ def map_init():
     Generates all tiles
     '''
     map_tiles = []
-    with open(r"C:\Users\Daniel\Documents\GitHub\PacMan\Pac-Man\assets\Map\Sprites.txt", "r") as s_map:
+    with open(os.path.join(settings.PATH, "assets", "Map", "Sprites.txt"), "r") as s_map, \
+         open(os.path.join(settings.PATH, "assets", "Map", "Rotations.txt"), "r") as r_map:
         map_lines = s_map.readlines()
+        rotation_lines = r_map.readlines()
         for row in range(settings.GRIDROWS):
             row_list = []
             for col in range(settings.GRIDCOLS):
                 char = map_lines[row][col]
+                rotation = int(rotation_lines[row][col]) * 90
                 row_list.append(Tile(
                     sprite_assign.get(char, BLACK_TILE),
-                    0,
+                    rotation,
                     col * settings.TILEWIDTH,
                     row * settings.TILEHEIGHT
                 ))
             map_tiles.append(row_list)
     return map_tiles
-
-
-# %%
