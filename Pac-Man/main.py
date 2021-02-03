@@ -4,7 +4,7 @@ Runs the games
 import pygame as pg
 from pygame.locals import *
 import settings
-from map_script import Map
+from map_script import _map
 from pacman import Pacman
 
 
@@ -23,8 +23,7 @@ class GameController(object):
         self.run = True
 
         self.pacman = Pacman()
-        self.map = Map()
-        self.map.map_init()
+        self.map = _map
 
         
 
