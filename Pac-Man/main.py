@@ -4,7 +4,7 @@ Runs the games
 import pygame as pg
 from pygame.locals import *
 import settings
-import load_tiles
+from map_script import _map
 from pacman import Pacman
 
 
@@ -18,9 +18,13 @@ class GameController(object):
         self.background = None
         self.set_background()
         self.clock = pg.time.Clock()
-        self.map_tiles = load_tiles.map_init()
         self.gameover = False
         self.score = 0
+        self.run = True
+
+        self.pacman = Pacman()
+        self.map = _map
+
         
 
     def set_background(self):
@@ -30,15 +34,9 @@ class GameController(object):
         self.background = pg.surface.Surface(settings.SCREENSIZE).convert()
         self.background.fill(settings.BLACK)
 
-    def start_Game(self):
-        self.map_tiles = load_tiles.map_init()
-        self.pacman = Pacman()
-        self.gameover = False
-
-
     def update(self):
         if not self.gameover:
-            deltatime = self.clock.tick(30) / 1000
+            deltatime = self.clock.tick(settings.FPS) / 1000
             self.pacman.update(deltatime)
             self.check_Events()
             self.render()
@@ -46,12 +44,12 @@ class GameController(object):
     def check_Events(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
-                self.gameover = True
+                self.run = False
     '''
     Draw all tiles in map_tiles
     '''
     def render(self):
-        for row in self.map_tiles:
+        for row in self.map.tiles:
             for tile in row:
                 self.screen.blit(tile.sprite, (tile.x, tile.y))
         
@@ -69,7 +67,6 @@ class GameController(object):
 
 if __name__ == "__main__":
     game = GameController()
-    game.start_Game()
-    while True:
+    while game.run:
         game.update()
     

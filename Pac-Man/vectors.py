@@ -19,3 +19,25 @@ class Vector2(object):
 
     def __mul__(self, scalar):
         return Vector2(self.x * scalar, self.y * scalar)
+    
+    def is_parallel(self, other):
+        if self.x != 0 and other.x != 0:
+            factor = self.x / other.x
+            if other.y * factor == self.y:
+                return True
+            else:
+                return False
+        elif self.y != 0 and other.y != 0:
+            factor = self.y / other.y
+            if other.x * factor == self.x:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    def normalize(self):
+        if self.x == 0 and self.y == 0:
+            return self
+        _sum = abs(self.x) + abs(self.y)
+        return Vector2(self.x / _sum, self.y / _sum)
