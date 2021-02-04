@@ -2,9 +2,11 @@
 Runs the games
 '''
 import pygame as pg
+from pygame.locals import *
 import settings
 import load_tiles
-pg.font.init()
+from pacman import Pacman
+
 
 class GameController(object):
     '''
@@ -15,8 +17,11 @@ class GameController(object):
         self.screen = pg.display.set_mode(settings.SCREENSIZE, 0, 32)
         self.background = None
         self.set_background()
+        self.clock = pg.time.Clock()
         self.map_tiles = load_tiles.map_init()
-        self.draw_tiles()
+        self.gameover = False
+        self.score = 0
+        
 
     def set_background(self):
         '''
@@ -25,45 +30,46 @@ class GameController(object):
         self.background = pg.surface.Surface(settings.SCREENSIZE).convert()
         self.background.fill(settings.BLACK)
 
-    #def start_game(self):
+    def start_Game(self):
+        self.map_tiles = load_tiles.map_init()
+        self.pacman = Pacman()
+        self.gameover = False
 
-    def draw_tiles(self):
-        '''
-        Draw all tiles in map_tiles
-        '''
+
+    def update(self):
+        if not self.gameover:
+            deltatime = self.clock.tick(30) / 1000
+            self.pacman.update(deltatime)
+            self.check_Events()
+            self.render()
+    
+    def check_Events(self):
+        for event in pg.event.get():
+            if event.type == pg.QUIT:
+                self.gameover = True
+    '''
+    Draw all tiles in map_tiles
+    '''
+    def render(self):
         for row in self.map_tiles:
             for tile in row:
                 self.screen.blit(tile.sprite, (tile.x, tile.y))
-
-    #def update(self):
-
-    #def renderAll(self):
-
-def main():
-    '''
-    Runs the game
-    '''
-    game = GameController()
-
-    #define clock which stabilizes FPS
-    clock = pg.time.Clock()
-
-    run = True
-    #game.startGame()
-    while run:
-        #game.update()
-
-        #stabilize FPS
-        clock.tick(settings.FPS)
-
-        #adopt display changes
+        
+        #self.pellets.render(self.screen)
+        #self.fruit.render(self.screen)
+        self.pacman.render(self.screen)
+        #self.ghosts.render(self.screen)
+        #self.text.render(self.screen)
         pg.display.update()
+        
 
-        #quit if game closed
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                run = False
+    #for event in pg.event.get():
+       # if event.type == pg.QUIT:
+            #run = False
 
 if __name__ == "__main__":
-    main()
+    game = GameController()
+    game.start_Game()
+    while True:
+        game.update()
     
