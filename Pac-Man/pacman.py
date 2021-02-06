@@ -14,17 +14,17 @@ class Pacman(object):
         self.remember_direction = None
         self.speed = 80
         self.radius = 10
+        self.collision_radius = 3
         #self.start_Position()
         self.lives = 5
         #self.startImage = self.spritesheet.getImage()
         self.animation = None
         self.animation_list = {}
         #self.animations()        
-        self.deathAnimation = False
-
-     
+        self.death_animation = False
+    
     def update(self, deltatime):
-        self.visible = True
+        self.show = True
         self.position += self.direction*self.speed*deltatime
         self.update_Animations(deltatime)
         
@@ -37,7 +37,7 @@ class Pacman(object):
             if dif_x <= 1 and dif_y <= 1:
                 on_node = True
 
-        direction = self.possibleDirs()
+        direction = self.possible_dirs()
         if self.remember_direction and self.direction.is_parallel(self.remember_direction):
             self.remember_direction = None
         if direction:
@@ -91,7 +91,7 @@ class Pacman(object):
     def start_Position(self):
         pass
 
-    def possibleDirs(self):
+    def possible_dirs(self):
         key_pressed = pg.key.get_pressed()
         if key_pressed[K_UP]:
             return UP
@@ -124,3 +124,13 @@ class Pacman(object):
         y = round((self.position.y - TILEHEIGHT / 2) / TILEHEIGHT)
         # I KNOW IT'S WRONG!!!
         return (x + 1,y + 1)
+        
+    def eat_pellet(self, pellet_list):
+        for pellet in pellet_list:
+            d = self.position - pellet.position
+            d_squared = d.magnitude_squared()
+            r_squared = (self.radius + self.collision_radius)**2
+            
+            if d_squared <= r_squared:
+                return pellet
+        return None

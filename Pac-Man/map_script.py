@@ -27,7 +27,7 @@ CLOSED_LEFT = tile_load("Cage_Wall_Closed_Left.png")
 CLOSED_RIGHT = tile_load("Cage_Wall_Closed_Right.png")
 CAGE_CORNER = tile_load("Cage_Wall_Corner.png")
 CAGE_DOUBLE = tile_load("Cage_Wall_Double.png")
-PELLET = tile_load("Pellet.png")
+#PELLET = tile_load("Pellet.png")
 CORNER_DOUBLE = tile_load("Wall_Corner_Double.png")
 WIDE_LEFT = tile_load("Wall_Corner_Wide_Left.png")
 WIDE_RIGHT = tile_load("Wall_Corner_Wide_Right.png")
@@ -54,7 +54,7 @@ sprite_assign = {
     "S": WALL_DOUBLE,
     "L": WIDE_LEFT,
     "R": WIDE_RIGHT,
-    "%": PELLET,
+    #"%": PELLET,
     "c": CORNER,
     "s": WALL,
     "w": BIG_CORNER,
