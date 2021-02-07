@@ -13,7 +13,7 @@ class Pacman(object):
         self.direction = STOP
         self.not_moved = True
         self.remember_direction = None
-        self.speed = 80
+        self.speed = 100
         self.radius = 10
         self.collision_radius = 3
         #self.start_Position()
@@ -24,7 +24,9 @@ class Pacman(object):
         #self.animations()        
         self.death_animation = False
         self.stop_frame = False
-    
+    '''
+    Updates Pac-Man player
+    '''
     def update(self, deltatime):
         if self.stop_frame:
             return
@@ -95,7 +97,9 @@ class Pacman(object):
 
     def start_Position(self):
         pass
-
+    '''
+    Defines all possible movement directions
+    '''
     def possible_dirs(self):
         key_pressed = pg.key.get_pressed()
         if key_pressed[K_UP]:
@@ -139,6 +143,7 @@ class Pacman(object):
             if d_squared <= r_squared:
                 return pellet
         return None
+    
     def position_check(self, node, tile):
         mid_x, mid_y = tile[0] * TILEWIDTH + TILEWIDTH / 2, tile[1] * TILEHEIGHT + TILEHEIGHT / 2
         node = _map.node_types.get(node, False)
@@ -148,10 +153,12 @@ class Pacman(object):
             self.set_to_center(mid_x, mid_y)
         elif (int(self.position.y) < int(mid_y) and not node.up) or (int(self.position.y) > int(mid_y) and not node.down):
             self.set_to_center(mid_x, mid_y)
+    
     def set_to_center(self, pos_x, pos_y):
         print("Triggered")
         self.position = Vector2(pos_x, pos_y)
         self.direction = STOP
+    
     def center(self, tile):
         if self.direction:
             if self.direction.x != 0:

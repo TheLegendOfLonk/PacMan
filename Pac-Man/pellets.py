@@ -21,7 +21,7 @@ class Pellet(object):
 class Powerpellet(object):
     def __init__(self, x, y):
         self.position = Vector2(x, y)
-        self.radius = 8
+        self.radius = 4
         self.points = 50
         self.show = True
         self.color = WHITE

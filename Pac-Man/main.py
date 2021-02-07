@@ -29,9 +29,9 @@ class GameController(object):
         self.pacman = Pacman()
         self.container = Variables()
         self.interface = UI()
-
         self.map = _map
         self.set_events()
+    
     def set_background(self):
         '''
         Creates a black background
@@ -49,11 +49,14 @@ class GameController(object):
         else:
             #end level, background flashes, game over
             pass
+        
+    def restart(self):
+        pass
+    
     def check_pellet_collision(self):
         pellet = self.pacman.eat_pellet(self.pellets.pellet_list)
         if pellet:
             self.pellets_eaten += 1
-            
             self.score += pellet.points
             self.pacman.stop_frame = True
             pg.time.set_timer(self.FRAME_SKIPPED, int(1000 / settings.FPS), True)
@@ -61,6 +64,7 @@ class GameController(object):
             self.pellets.pellet_list.remove(pellet)
         if self.pellets.isEmpty():
             self.pacman.show = False
+            print("No more pellets")
             
 
     def check_Events(self):
@@ -76,8 +80,8 @@ class GameController(object):
         for row in self.map.tiles:
             for tile in row:
                 self.screen.blit(tile.sprite, (tile.x, tile.y))
-        
-        self.interface.draw_UI(self.screen, self.container)
+
+        self.interface.render(self.screen, self.container)
         self.pellets.render(self.screen)
         #self.fruit.render(self.screen)
         self.pacman.render(self.screen)
