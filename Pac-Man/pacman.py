@@ -35,12 +35,15 @@ class Pacman(object):
         
         tile = self.get_tile()
         node = _map.nodes.get((tile[0] + 1, tile[1] + 1), False)
+        self.center(tile)
         on_node = False
         if node:
             dif_x = abs((tile[0]) * 16  - (self.position.x - TILEWIDTH / 2))
             dif_y = abs((tile[1]) * 16  - (self.position.y - TILEHEIGHT / 2))
             if dif_x <= 1 and dif_y <= 1:
                 on_node = True
+            else:
+                self.position_check(node, tile)
 
         direction = self.possible_dirs()
         if self.remember_direction and self.direction.is_parallel(self.remember_direction):
@@ -136,3 +139,22 @@ class Pacman(object):
             if d_squared <= r_squared:
                 return pellet
         return None
+    def position_check(self, node, tile):
+        mid_x, mid_y = tile[0] * TILEWIDTH + TILEWIDTH / 2, tile[1] * TILEHEIGHT + TILEHEIGHT / 2
+        node = _map.node_types.get(node, False)
+        if not node:
+            raise(Exception("Not working node!"))
+        if (int(self.position.x) < int(mid_x) and not node.left) or (int(self.position.x) > int(mid_x) and not node.right):
+            self.set_to_center(mid_x, mid_y)
+        elif (int(self.position.y) < int(mid_y) and not node.up) or (int(self.position.y) > int(mid_y) and not node.down):
+            self.set_to_center(mid_x, mid_y)
+    def set_to_center(self, pos_x, pos_y):
+        print("Triggered")
+        self.position = Vector2(pos_x, pos_y)
+        self.direction = STOP
+    def center(self, tile):
+        if self.direction:
+            if self.direction.x != 0:
+                self.position.y = int(tile[1] * TILEHEIGHT + TILEHEIGHT / 2)
+            if self.direction.y != 0:
+                self.position.x = int(tile[0] * TILEWIDTH + TILEWIDTH / 2)
