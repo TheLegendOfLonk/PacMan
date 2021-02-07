@@ -1,6 +1,7 @@
 import pygame as pg
 from vectors import Vector2
 from settings import *
+import map_script
 
 class Pellet(object):
     def __init__(self, x, y):
@@ -15,8 +16,7 @@ class Pellet(object):
         pos = (int(pos[0] - TILEWIDTH/2), int(pos[1] - TILEWIDTH/2))
         #pg.draw.circle(screen, self.color, pos, self.radius)
         #pos = (int(pos[0]), int(pos[1]))
-        sprite = pg.image.load(os.path.join(PATH, "assets", "Tiles", "Pellet.png"))
-        screen.blit(sprite, pos)
+        screen.blit(map_script.PELLET, pos)
 
 class Powerpellet(object):
     def __init__(self, x, y):
@@ -34,8 +34,7 @@ class Powerpellet(object):
             #pos = (int(pos[0]+TILEWIDTH/2), int(pos[1]+TILEWIDTH/2))
             #pg.draw.circle(screen, self.color, pos, self.radius)
             pos = (int(pos[0] - TILEWIDTH/2), int(pos[1] - TILEWIDTH/2))
-            sprite = pg.image.load(os.path.join(PATH, "assets", "Tiles", "Power_Pellet.png"))
-            screen.blit(sprite, pos)
+            screen.blit(map_script.POWER_PELLET, pos)
 
 class AllPellets(object):
     def __init__(self):

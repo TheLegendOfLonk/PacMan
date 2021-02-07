@@ -7,6 +7,8 @@ import settings
 from map_script import _map
 from pacman import Pacman
 from pellets import AllPellets
+from variables import Variables
+from UI import UI
 
 
 class GameController(object):
@@ -25,8 +27,11 @@ class GameController(object):
         self.run = True
         self.pellets = AllPellets()
         self.pacman = Pacman()
+        self.container = Variables()
+        self.interface = UI()
 
         self.map = _map
+        self.set_events()
     def set_background(self):
         '''
         Creates a black background
@@ -50,6 +55,8 @@ class GameController(object):
             self.pellets_eaten += 1
             
             self.score += pellet.points
+            self.pacman.stop_frame = True
+            pg.time.set_timer(self.FRAME_SKIPPED, int(1000 / settings.FPS), True)
             print(self.score)
             self.pellets.pellet_list.remove(pellet)
         if self.pellets.isEmpty():
@@ -60,6 +67,8 @@ class GameController(object):
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 self.run = False
+            if event.type == self.FRAME_SKIPPED:
+                self.pacman.stop_frame = False
     '''
     Draw all tiles in map_tiles
     '''
@@ -68,6 +77,7 @@ class GameController(object):
             for tile in row:
                 self.screen.blit(tile.sprite, (tile.x, tile.y))
         
+        self.interface.draw_UI(self.screen, self.container)
         self.pellets.render(self.screen)
         #self.fruit.render(self.screen)
         self.pacman.render(self.screen)
@@ -85,6 +95,8 @@ class GameController(object):
         else:
             self.restart()
 
+    def set_events(self):
+        self.FRAME_SKIPPED = pg.USEREVENT
 
 if __name__ == "__main__":
     game = GameController()

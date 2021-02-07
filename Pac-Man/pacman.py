@@ -3,6 +3,7 @@ from pygame.locals import *
 from vectors import Vector2
 from settings import *
 from map_script import _map
+import datetime
 
 class Pacman(object):
     def __init__(self):
@@ -22,18 +23,22 @@ class Pacman(object):
         self.animation_list = {}
         #self.animations()        
         self.death_animation = False
+        self.stop_frame = False
     
     def update(self, deltatime):
+        if self.stop_frame:
+            return
+
         self.show = True
         self.position += self.direction*self.speed*deltatime
         self.update_Animations(deltatime)
         
         tile = self.get_tile()
-        node = _map.nodes.get(tile, False)
+        node = _map.nodes.get((tile[0] + 1, tile[1] + 1), False)
         on_node = False
         if node:
-            dif_x = abs((tile[0] - 1) * 16  - (self.position.x - TILEWIDTH / 2))
-            dif_y = abs((tile[1] - 1) * 16  - (self.position.y - TILEHEIGHT / 2))
+            dif_x = abs((tile[0]) * 16  - (self.position.x - TILEWIDTH / 2))
+            dif_y = abs((tile[1]) * 16  - (self.position.y - TILEHEIGHT / 2))
             if dif_x <= 1 and dif_y <= 1:
                 on_node = True
 
@@ -77,9 +82,6 @@ class Pacman(object):
 
         else:
             pass
-            #self.autoMove()
-            #temp
-            #self.direction = STOP
 
     def node_check(self, node, direction):
         node = _map.node_types.get(node, False)
@@ -122,8 +124,8 @@ class Pacman(object):
     def get_tile(self):
         x = round((self.position.x - TILEWIDTH / 2) / TILEWIDTH)
         y = round((self.position.y - TILEHEIGHT / 2) / TILEHEIGHT)
-        # I KNOW IT'S WRONG!!!
-        return (x + 1,y + 1)
+
+        return (x, y)
         
     def eat_pellet(self, pellet_list):
         for pellet in pellet_list:
