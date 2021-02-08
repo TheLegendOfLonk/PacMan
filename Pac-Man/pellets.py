@@ -12,7 +12,7 @@ class Pellet(object):
         self.show = True
 
     def render(self, screen):
-        pos = self.position.asInt()
+        pos = self.position.as_int()
         pos = (int(pos[0] - TILEWIDTH/2), int(pos[1] - TILEWIDTH/2))
         #pg.draw.circle(screen, self.color, pos, self.radius)
         #pos = (int(pos[0]), int(pos[1]))
@@ -30,7 +30,7 @@ class Powerpellet(object):
 
     def render(self, screen):
         if self.show:
-            pos = self.position.asInt()
+            pos = self.position.as_int()
             #pos = (int(pos[0]+TILEWIDTH/2), int(pos[1]+TILEWIDTH/2))
             #pg.draw.circle(screen, self.color, pos, self.radius)
             pos = (int(pos[0] - TILEWIDTH/2), int(pos[1] - TILEWIDTH/2))

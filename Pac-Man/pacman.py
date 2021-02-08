@@ -119,7 +119,7 @@ class Pacman(object):
         pass
 
     def render(self, screen):
-        pos = self.position.asInt()
+        pos = self.position.as_int()
         pg.draw.circle(screen, self.color, pos, self.radius)
 
     def animations(self):
