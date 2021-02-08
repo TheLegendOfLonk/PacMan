@@ -2,6 +2,6 @@
     "python.linting.pylintEnabled": true,
     "python.linting.enabled": true,
     "python.linting.pylintArgs":[
-        "--disable=unused-wildcard-import", "--extension-pkg-whitelist=pygame"
+        "--disable=unused-wildcard-import", "--extension-pkg-whitelist=pygame", "--disable=invalid-name"
     ]
 }
