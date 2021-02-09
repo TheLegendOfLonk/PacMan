@@ -1,5 +1,5 @@
 '''
-Runs the games
+Runs the game
 '''
 import pygame as pg
 from pygame.locals import *
@@ -14,9 +14,30 @@ from UI import UI
 class GameController(object):
     '''
     Manages the game
+
+    Attributes
+    ----------
+    screen : pygame.Surface
+        The game window
+    background : pygame.Surface
+        A black background
+    clock : pygame.time.clock
+        A clock used to stabilize FPS
+    gameover : bool
+        Indicates whether a game over has ocurred
+    score : int
+        Describes the current score
+    pellets_eaten : int
+        Indicates the amount of eaten pellets
+    run : bool
+        Changes to false, to stop game execution when player quits the game, in order to prevent a no response error
+    
+    
     '''
     def __init__(self):
+        #Initialise all pygame components
         pg.init()
+        #Set screen and background
         self.screen = pg.display.set_mode(settings.SCREENSIZE, 0, 32)
         self.background = None
         self.set_background()
