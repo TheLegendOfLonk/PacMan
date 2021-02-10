@@ -103,7 +103,7 @@ class Pacman():
         '''
         Updates the position of pacman, checks whether he is on a node and manage direction changes
 
-        Attributes
+        Parameter
         ----------
         deltatime : float
             Changes with different FPS, so that all movement is independent of FPS
@@ -201,7 +201,7 @@ class Pacman():
         whether the node accepts the desired direction, and if yes,
         calls the assign_direction function, which sets the new direction
 
-        Attributes
+        Parameters
         ----------
         node : string
             A string containing all possible directions
@@ -224,7 +224,7 @@ class Pacman():
         '''
         Converts the node string to a Node class object and checks if it allows a certain direction
 
-        Attributes
+        Parameters
         ----------
         node : string
             A string containing all possible directions
@@ -268,7 +268,7 @@ class Pacman():
         '''
         Changes the direction to the desired direction
 
-        Attributes
+        Parameters
         ----------
         direction : Vector2
             The desired direction
@@ -301,7 +301,7 @@ class Pacman():
         '''
         Calculate distance to all pellets and return if within eating radius
 
-        Attributes
+        Parameters
         ----------
         pellet_list : list
             A list containing all pellets
@@ -326,7 +326,7 @@ class Pacman():
         Each time moves out of the predestined grid, the set_to_center gets called and
         sets pacman back to the center of the tile
 
-        Attributes
+        Parameters
         ----------
         node : string
             A string containing all possible directions
@@ -351,7 +351,7 @@ class Pacman():
         '''
         Sets position to center of tile and stops pacman. Used when pacman leaves his boundries
 
-        Attributes
+        Parameters
         ----------
         pos_x : float
             The x-position of tile center
@@ -366,7 +366,7 @@ class Pacman():
         Adjusts the pacman location. When moving horizontally, adjusts vertical position to
         fit in the grid, and vice versa
 
-        Attributes
+        Parameters
         ----------
         tile : Vector2
             The current tile position
@@ -381,7 +381,7 @@ class Pacman():
         '''
         Decreases amount of lives by one and returns the current number to detect a Game Over
 
-        Attributes
+        Parameters
         ----------
         screen : pygame.Surface
             The game window
@@ -394,7 +394,7 @@ class Pacman():
         '''
         Renders Pac-Man player lives at the bottom left of the screen
 
-        Attributes
+        Parameters
         ----------
         screen : pygame.Surface
             The game window

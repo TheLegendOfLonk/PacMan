@@ -38,6 +38,25 @@ class GameController(object):
         Initializes a Pacman class object
     FRAME_SKIPPED : pygame.USEREVENT
         Defines a skipped frame as a pygame Userevent
+    
+    Methods
+    -------
+    set_background()
+        Creates a black background window
+    update()
+        Updates the entire game each frame
+    reset()
+        Resets the level(Map, Pellets, Pac-Man)
+    check_pellet_collision()
+        Checks for collisions between Pac-Man and pellets
+    check_Events()
+        Checks for specific pygame events
+    render()
+        Renders all elements of the game every update cycle
+    death()
+        Handels Pac-Man's death
+    set_events()
+        Defines pygame events
     '''
 
     def __init__(self):
@@ -62,11 +81,6 @@ class GameController(object):
     def set_background(self):
         '''
         Creates a black background
-
-        Attributes
-        ----------
-        background : pygame.Surface
-            creates black brackground with SCREENSIZE dimensions
         
         Returns
         -------
@@ -93,7 +107,10 @@ class GameController(object):
             #TODO:end level, background flashes, game over
             pass
 
-    def restart(self):
+    def reset(self):
+        '''
+        Resets the level(Map, Pellets, Pac-Man)
+        '''
         pass
 
     def check_pellet_collision(self):
@@ -104,8 +121,6 @@ class GameController(object):
         ----------
         pellet : bool
             when a pellet has been eaten, pacman.py will return pellet as 'True'
-        pellet_list : list
-            list of all uneaten pellets(including powerpellets)
         '''
         pellet = self.pacman.eat_pellet(self.pellets.pellet_list)
         if pellet:
@@ -117,11 +132,14 @@ class GameController(object):
 
             #Increases current score by pellet.points or powerpellet.points amount
             self.score += pellet.points
+            
+            #removes eaten pellets from the pellet list
             self.pellets.pellet_list.remove(pellet)
             print(self.score)
 
-        #checks if the list of all pellets is empty
+        #checks if the list of all uneaten pellets is empty
         if self.pellets.isEmpty():
+            #no longer show Pac-Man's sprite
             self.pacman.show = False
             print("No more pellets")
             #TODO: flash background, reset level, reset Pac-Man(save lives and score)
@@ -129,8 +147,17 @@ class GameController(object):
     def check_Events(self):
         '''
         Checks for pygame events
+
+        Attributes
+        ----------
+        event : pygame.event
+            pygame Event
         '''
+
+        #get all events from pygame.event.get() and loop through them
         for event in pg.event.get():
+
+            #when player tries to close the window, the game is no longer permitted to run
             if event.type == pg.QUIT:
                 self.run = False
 
@@ -141,8 +168,13 @@ class GameController(object):
     def render(self):
         '''
         Renders all visual elements
-        '''
+        
+        Returns
+        -------
+        pygame.Surface
+            Updated screen with all screen elements
 
+        '''
         #renders the map walls
         for row in self.map.tiles:
             for tile in row:
@@ -158,18 +190,23 @@ class GameController(object):
 
     def death(self):
         '''
-        Pac-Man dies
+        Handels Pac-Man's death
         '''
+        #check if Pac-Man is dead
         if self.pacman.lives == 0:
             self.gameover = True
             self.pacman.show = False
-        else:
-            self.restart()
-
+        
     def set_events(self):
+        '''
+        Defines specific pygame events
+        '''
         self.FRAME_SKIPPED = pg.USEREVENT
 
+
 if __name__ == "__main__":
+    
+    #Initializes the GameController class object
     game = GameController()
     while game.run:
         game.update()
