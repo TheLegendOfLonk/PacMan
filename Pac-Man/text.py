@@ -2,6 +2,8 @@ import pygame as pg
 from vectors import Vector2
 import settings
 
+#TODO: Cleansing
+
 class Text(object):
     def __init__(self, text, size, color, x, y, show=True):
         self.text = text

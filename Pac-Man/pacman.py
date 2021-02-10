@@ -194,6 +194,8 @@ class Pacman():
                 direction = self.direction
                 if not self.move_on_node(node, direction, _map):
                     self.direction = STOP
+        
+        _map.teleport_check(self)
 
     def move_on_node(self, node, direction, _map):
         '''

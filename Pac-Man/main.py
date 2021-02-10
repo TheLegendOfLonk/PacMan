@@ -128,7 +128,7 @@ class GameController(object):
 
             #stop Pac-Man's movement for 1 frame or 16,67ms when a pellet is eaten
             self.pacman.stop_frame = True
-            pg.time.set_timer(self.FRAME_SKIPPED, int(1000 / settings.FPS), True)
+            pg.time.set_timer(self.FRAME_SKIPPED, 1, True)
 
             #Increases current score by pellet.points or powerpellet.points amount
             self.score += pellet.points

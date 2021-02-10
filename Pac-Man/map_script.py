@@ -4,28 +4,29 @@ with all sprites and assigns a sprite to each tile
 '''
 import os
 import pygame as pg
-import settings
+from settings import *
 from vectors import Vector2
 
 #TODO: Implement spritesheets
+#TODO: Cleansing
 
 def tile_load(img):
     '''
     Loads and scales image
 
-    Paramters:
+    Parameters:
         img: File name of the tile
 
     Returns:
         The loaded and scaled image
     '''
     return pg.transform.scale(
-        pg.image.load(os.path.join(settings.PATH, "assets", "Tiles", img)),
-        (settings.TILEWIDTH, settings.TILEHEIGHT))
+        pg.image.load(os.path.join(PATH, "assets", "Tiles", img)),
+        (TILEWIDTH, TILEHEIGHT))
 
 def sprite_load(img, scale_x, scale_y, rotate):
     return pg.transform.rotate(pg.transform.scale(
-        pg.image.load(os.path.join(settings.PATH, "assets", "Sprites", img)),
+        pg.image.load(os.path.join(PATH, "assets", "Sprites", img)),
         (scale_x, scale_y)), rotate)
 
 #define sprites
@@ -129,20 +130,20 @@ class Map():
         '''
         Generates all tiles
         '''
-        with open(os.path.join(settings.PATH, "assets", "Map", "Sprites.txt"), "r") as s_map, \
-            open(os.path.join(settings.PATH, "assets", "Map", "Rotations.txt"), "r") as r_map:
+        with open(os.path.join(PATH, "assets", "Map", "Sprites.txt"), "r") as s_map, \
+            open(os.path.join(PATH, "assets", "Map", "Rotations.txt"), "r") as r_map:
             map_lines = s_map.readlines()
             rotation_lines = r_map.readlines()
-            for row in range(settings.GRIDROWS):
+            for row in range(GRIDROWS):
                 row_list = []
-                for col in range(settings.GRIDCOLS):
+                for col in range(GRIDCOLS):
                     char = map_lines[row][col]
                     rotation = int(rotation_lines[row][col]) * 90
                     row_list.append(Tile(
                         sprite_assign.get(char, BLACK_TILE),
                         rotation,
-                        col * settings.TILEWIDTH,
-                        row * settings.TILEHEIGHT
+                        col * TILEWIDTH,
+                        row * TILEHEIGHT
                     ))
                 self.tiles.append(row_list)
     def set_nodes(self):
@@ -212,3 +213,11 @@ class Map():
             (16, 33): 'TLR',
             (27, 33): 'TL'
         }
+    def teleport_check(self, obj):
+        '''
+        Teleports pacman to other side if necessary
+        '''
+        factor = 1.5
+        if not 0 - factor * TILEWIDTH < obj.position.x < SWIDTH + factor * TILEWIDTH:
+            obj.position.x = round(SWIDTH - obj.position.x) 
+
