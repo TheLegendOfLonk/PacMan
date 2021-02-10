@@ -22,7 +22,7 @@ class Pacman():
     color : tuple
         Tuple of the RGB-value
     position : Vector2
-        Starting position
+        Pac-Man's position on the board
     direction : Vector2
         Current direction
     not_moved : bool
@@ -103,7 +103,7 @@ class Pacman():
         '''
         Updates the position of pacman, checks whether he is on a node and manage direction changes
 
-        Parameter
+        Parameters
         ----------
         deltatime : float
             Changes with different FPS, so that all movement is independent of FPS

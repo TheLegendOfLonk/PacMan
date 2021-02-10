@@ -206,7 +206,7 @@ class GameController(object):
 
 if __name__ == "__main__":
     
-    #Initializes the GameController class object
+    #Initializes the- GameController class object
     game = GameController()
     while game.run:
         game.update()
