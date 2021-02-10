@@ -31,9 +31,9 @@ class Powerpellet(object):
     def render(self, screen):
         if self.show:
             pos = self.position.as_int()
+            pos = (int(pos[0] - TILEWIDTH/2), int(pos[1] - TILEWIDTH/2))
             #pos = (int(pos[0]+TILEWIDTH/2), int(pos[1]+TILEWIDTH/2))
             #pg.draw.circle(screen, self.color, pos, self.radius)
-            pos = (int(pos[0] - TILEWIDTH/2), int(pos[1] - TILEWIDTH/2))
             screen.blit(map_script.POWER_PELLET, pos)
 
 class AllPellets(object):

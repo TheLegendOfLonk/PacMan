@@ -19,43 +19,9 @@ class Variables():
     get_score()
         Returns the current score
     '''
-    def __init__(self):
-        self.lives = 2
-        self.score = 0
+ 
 
-    def get_lives(self):
-        '''
-        Gets the current amount of lives
 
-        Returns
-        -------
-        int
-            Amount of lives
-        '''
-        return self.lives
-
-    def set_lives(self, lives):
-        '''
-        Sets the amount of lives
-
-        Parameter
-        ---------
-        lives : int
-            The desired amount of lives
-        '''
-        self.lives = lives
-
-    def live_lost(self):
-        '''
-        Decreases amount of lives by one and returns the current number to detect Game Overs
-
-        Returns
-        -------
-        int
-            Current amount of lives, Game Over at 0
-        '''
-        self.lives -= 1
-        return self.lives
 
     def raise_score(self, increase):
         '''

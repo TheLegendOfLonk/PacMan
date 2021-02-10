@@ -4,7 +4,7 @@ Contains the Vector2 class
 
 import math
 
-class Vector2(object):
+class Vector2():
     '''
     A class used to implement 2D Vectors
 
