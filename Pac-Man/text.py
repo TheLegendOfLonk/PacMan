@@ -18,5 +18,8 @@ class Text(object):
     
     def render(self, screen):
         if self.show:
-            x, y = self.position.asTuple()
+            x, y = self.position.as_tuple()
+    
+    def update_Score(self, score):
+        pass
             

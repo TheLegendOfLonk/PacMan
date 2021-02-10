@@ -1,9 +1,10 @@
 '''
 Stores all settings
 '''
-from vectors import Vector2
 #path
 import os
+from vectors import Vector2
+
 PATH = os.path.abspath(__file__)[:-12]
 
 #screen settings
