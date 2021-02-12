@@ -54,7 +54,12 @@ class Ghost():
         A countdown that releases the ghost upon reaching 0
     waiting : bool
         Indicates whether the ghost is still waiting in the center box
-
+    current_sprite : pygame.Surface
+        The current sprite which needs to be rendered
+    frightened_sprite : pygame.Surface
+        The sprite of a frightened ghost
+    radius : int
+        Collision radius
     Methods
     -------
     update(deltatime, pacman)
@@ -104,6 +109,9 @@ class Ghost():
         self.sprite = sprite
         self.dot_countdown = 0
         self.waiting = False
+        self.current_sprite = self.sprite
+        self.frightened_sprite = sprite_load('blue_ghost1.png', 32, 32, 0)
+        self.radius = 5
         #self.animation = None
         #self.animations = {}
     def update(self, deltatime, pacman):
@@ -118,12 +126,14 @@ class Ghost():
             A Pacman class object
         '''
         self.position += self.direction * self.speed * deltatime
-
+        self.collision_check(pacman)
         #Check whether passed a node
         if self.passed_next_tile():
             self.start_decision()
         if self.map.teleport_check(self):
             self.set_next_tile()
+        
+
     def get_tile(self, pos):
         '''
         Gets the tile of a certain object
@@ -214,15 +224,6 @@ class Ghost():
         func()
         self.set_next_tile()
     
-    def scatter(self):
-        pass
-
-    def frightened(self):
-        pass
-
-    def eaten(self):
-        pass
-
     def set_next_tile(self):
         '''
         Sets the next tile which the ghost will go to
@@ -267,7 +268,24 @@ class Ghost():
             The surface on which the ghost should be rendered
         '''
         screen.blit(self.sprite, (self.position.x - 1.5 * TILEWIDTH, self.position.y - 1.5 * TILEWIDTH))
-        # pg.draw.circle(screen, WHITE, (self.next_tile[0] * TILEWIDTH + TILEWIDTH / 2,self.next_tile[1] * TILEHEIGHT + TILEWIDTH / 2), 10)
+        pg.draw.circle(screen, WHITE, (self.position.x, self.position.y), 5)
+    def reverse(self):
+        self.direction *= -1
+        self.set_next_tile()
+    
+    def collision_check(self, pacman):
+        if (self.position - pacman.position).magnitude() <= self.radius:
+            print("collision")
+        
+    def scatter(self):
+        pass
+
+    def frightened(self):
+        pass
+
+    def eaten(self):
+        pass
+
     
         
 class Blinky(Ghost):
