@@ -38,8 +38,16 @@ class Ghost():
         self.position += self.direction * self.speed * deltatime
         if self.passed_next_tile():
             self.start_decision()
+    
+    def get_tile(self, pos=None):
+        x = pos.x
+        y = pos.y
+        x = round((x - TILEWIDTH / 2) / TILEWIDTH)
+        y = round((y - TILEHEIGHT / 2) / TILEHEIGHT)
+
+        return Vector2(x, y)
         
-    def get_current_tile(self, pos=None):
+    def get_current_tile(self,):
         '''
         Returns the tile the ghost is currently located on
 
@@ -48,14 +56,10 @@ class Ghost():
         tuple
             A tuple containing the x and y cordinate of the tile
         '''
-        if pos:
-            x = pos.x
-            y = pos.y
-        else:
-            x = self.position.x
-            y = self.position.y
-        x = round((x - TILEWIDTH / 2) / TILEWIDTH)
-        y = round((y - TILEHEIGHT / 2) / TILEHEIGHT)
+        x = self.position.x
+        y = self.position.y
+        x = round((x - TILEWIDTH) / TILEWIDTH)
+        y = round((y - TILEHEIGHT) / TILEHEIGHT)
 
         return Vector2(x, y)
 
@@ -63,22 +67,26 @@ class Ghost():
         self.target = target
         results = dict()
         tile = self.get_current_tile()
-        node = self.map.nodes.get(tile, False)
+        node = self.map.nodes.get((tile.x + 1, tile.y + 1), False)
         if node:
             node = self.map.node_types.get(node, False)
             for direction in self.directions:
-                allow = (direction == UP and tile in self.banned_nodes) \
-                    and node.check_dir(direction) and (self.direction)
-                results[direction] = self.determine_distance(direction) if allow else -1
-            new_results = dict(filter(lambda elem: elem[0] >= 0, results.items()))
-            min_distance = min(new_results.values())
-            for key, value in new_results.items():
+                allow = not (direction == UP and (tile.x + 1, tile.y + 1) in self.banned_nodes) \
+                    and node.check_dir(direction) and ((self.direction * -1).as_int() != direction.as_int())
+                if allow:
+                    results[direction] = self.determine_distance(direction)
+            if len(results) == 0:
+                results[self.direction] = 1
+            print(e[0] for e in results.items())
+            print(e[1] for e in results.items())
+            min_distance = min(results.values())
+            for key, value in results.items():
                 if value <= min_distance:
                     self.direction = key
                     return
     
     def determine_distance(self, direction):
-        vector = self.target - (self.position + direction)
+        vector = self.target - (self.get_current_tile() + direction)
         return vector.magnitude()
     
     def start_decision(self):
@@ -99,23 +107,18 @@ class Ghost():
         pass
 
     def get_next_tile(self):
-        if self.direction.x != 0:
-            x = round(self.position.x - TILEWIDTH / 2) // TILEWIDTH
-            x = x + 1 if self.direction.x > 0 else x
-            y = round(self.position.y - TILEHEIGHT / 2) // TILEHEIGHT
-        else:
-            x = round(self.position.x - TILEWIDTH / 2) // TILEWIDTH
-            y = round(self.position.y - TILEHEIGHT / 2) // TILEHEIGHT
-            y = y + 1 if self.direction.y > 0 else y
+        x, y = (self.get_current_tile() + self.direction).as_int()
         self.next_tile = (x, y)
 
     def passed_next_tile(self):
-        coordinates = Vector2(self.next_tile[0] * TILEWIDTH + TILEWIDTH / 2,
-                              self.next_tile[1] * TILEHEIGHT + TILEHEIGHT / 2)
-        if self.direction.x - (self.position - coordinates).normalize().x < 0.01:
+        coordinates = Vector2(self.next_tile[0] * TILEWIDTH + TILEWIDTH,
+                              self.next_tile[1] * TILEHEIGHT + TILEHEIGHT)
+        if self.direction.x < 0 and self.position.x < coordinates.x or \
+            self.direction.x > 0 and self.position.x > coordinates.x:
             self.center(coordinates)
             return True
-        elif self.direction.y - (self.position - coordinates).normalize().y < 0.01:
+        elif self.direction.y < 0 and self.position.y < coordinates.y or \
+            self.direction.y > 0 and self.position.y > coordinates.y:
             self.center(coordinates)
             return True
         return False
@@ -124,19 +127,19 @@ class Ghost():
         self.position = position
     
     def render(self, screen):
-        screen.blit(self.sprite, (self.position.x - TILEWIDTH, self.position.y - TILEWIDTH))
-        pg.draw.circle(screen, WHITE, self.next_tile, 3)
+        screen.blit(self.sprite, (self.position.x - 1.5 * TILEWIDTH, self.position.y - 1.5 * TILEWIDTH))
+        pg.draw.circle(screen, WHITE, (self.next_tile[0] * TILEWIDTH + TILEWIDTH / 2,self.next_tile[1] * TILEHEIGHT + TILEWIDTH / 2), 10)
     
         
 class Blinky(Ghost):
     def __init__(self, _map, pacman):
         sprite = sprite_load('blinky_left1.png', 32, 32, 0)
-        super().__init__(_map, Vector2(14 * TILEWIDTH, 14.5 * TILEHEIGHT), sprite, direction=LEFT)
+        super().__init__(_map, Vector2(14.25 * TILEWIDTH, 15 * TILEHEIGHT), sprite, direction=LEFT)
         self.pacman = pacman
         self.get_next_tile()
 
     def chase(self):
-        target = self.get_current_tile(self.pacman.position)
+        target = self.get_tile(self.pacman.position)
         self.determine_path(target)
 
 class Pinky(Ghost):
