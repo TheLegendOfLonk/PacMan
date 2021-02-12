@@ -111,7 +111,8 @@ class Ghost():
         self.waiting = False
         self.current_sprite = self.sprite
         self.frightened_sprite = sprite_load('blue_ghost1.png', 32, 32, 0)
-        self.radius = 5
+        self.eaten_sprite = sprite_load('ghosteyes_left.png', 32, 32, 0)
+        self.radius = 16
         #self.animation = None
         #self.animations = {}
     def update(self, deltatime, pacman):
@@ -126,7 +127,6 @@ class Ghost():
             A Pacman class object
         '''
         self.position += self.direction * self.speed * deltatime
-        self.collision_check(pacman)
         #Check whether passed a node
         if self.passed_next_tile():
             self.start_decision()
@@ -166,8 +166,8 @@ class Ghost():
         '''
         x = self.position.x
         y = self.position.y
-        x = round((x - TILEWIDTH) / TILEWIDTH)
-        y = round((y - TILEHEIGHT) / TILEHEIGHT)
+        x = round((x - TILEWIDTH / 2) / TILEWIDTH)
+        y = round((y - TILEHEIGHT / 2) / TILEHEIGHT)
 
         return Vector2(x, y)
 
@@ -228,8 +228,8 @@ class Ghost():
         '''
         Sets the next tile which the ghost will go to
         '''
-        x, y = (self.get_current_tile() + self.direction).as_int()
-        self.next_tile = (x, y)
+        x, y = (self.get_current_tile() + self.direction).as_tuple()
+        self.next_tile = (round(x), round(y))
 
     def passed_next_tile(self):
         '''
@@ -240,8 +240,8 @@ class Ghost():
         bool
             True if next tile was passed
         '''
-        coordinates = Vector2(self.next_tile[0] * TILEWIDTH + TILEWIDTH,
-                              self.next_tile[1] * TILEHEIGHT + TILEHEIGHT)
+        coordinates = Vector2(self.next_tile[0] * TILEWIDTH + TILEWIDTH / 2,
+                              self.next_tile[1] * TILEHEIGHT + TILEHEIGHT / 2)
         if self.direction.x < 0 and self.position.x < coordinates.x or \
             self.direction.x > 0 and self.position.x > coordinates.x:
             self.center(coordinates)
@@ -267,16 +267,20 @@ class Ghost():
         screen : pygame.Surface
             The surface on which the ghost should be rendered
         '''
-        screen.blit(self.sprite, (self.position.x - 1.5 * TILEWIDTH, self.position.y - 1.5 * TILEWIDTH))
-        pg.draw.circle(screen, WHITE, (self.position.x, self.position.y), 5)
+        screen.blit(self.sprite, (self.position.x - TILEWIDTH, self.position.y - TILEWIDTH))
+        #pg.draw.circle(screen, WHITE, (self.position.x, self.position.y), 15)
     def reverse(self):
         self.direction *= -1
         self.set_next_tile()
-    
+
     def collision_check(self, pacman):
         if (self.position - pacman.position).magnitude() <= self.radius:
-            print("collision")
-        
+            if self.mode == 2:
+                self.current_sprite = self.eaten_sprite
+                self.mode = 3
+            elif self.mode < 2:
+                print("Death lul")
+
     def scatter(self):
         pass
 
@@ -291,7 +295,7 @@ class Ghost():
 class Blinky(Ghost):
     def __init__(self, _map, pacman):
         sprite = sprite_load('blinky_left1.png', 32, 32, 0)
-        super().__init__(_map, Vector2(14.25 * TILEWIDTH, 15 * TILEHEIGHT), sprite, direction=LEFT)
+        super().__init__(_map, Vector2(14 * TILEWIDTH, 14.5 * TILEHEIGHT), sprite, direction=LEFT)
         self.pacman = pacman
         self.set_next_tile()
 
@@ -340,4 +344,6 @@ class AllGhosts():
     def render(self, screen):
         for ghost in self:
             ghost.render(screen)
-
+    def check_events(self, pacman):
+        for ghost in self:
+            ghost.collision_check(pacman)

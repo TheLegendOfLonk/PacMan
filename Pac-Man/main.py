@@ -10,7 +10,6 @@ from pellets import AllPellets
 from variables import Variables
 from ghosts import AllGhosts
 
-
 class GameController(object):
     '''
     Manages the game
@@ -37,8 +36,6 @@ class GameController(object):
         Initializes a Map class object
     pacman : Pacman
         Initializes a Pacman class object
-    FRAME_SKIPPED : pygame.USEREVENT
-        Defines a skipped frame as a pygame Userevent
     level : int
         Defines the current level
     
@@ -58,8 +55,6 @@ class GameController(object):
         Renders all elements of the game every update cycle
     death()
         Handels Pac-Man's death
-    set_events()
-        Defines pygame events
     '''
 
     def __init__(self):
@@ -80,7 +75,6 @@ class GameController(object):
         self.map = Map()
         self.pacman = Pacman(self.map)
         self.ghosts = AllGhosts(self.map, self.pacman)
-        self.set_events()
         self.level = 1
 
     def set_background(self):
@@ -107,6 +101,7 @@ class GameController(object):
             self.check_pellet_collision()
             self.check_Events()
             self.ghosts.update(deltatime, self.pacman)
+            self.ghosts.check_events(self.pacman)
             self.render()
         else:
 
@@ -134,7 +129,6 @@ class GameController(object):
 
             #stop Pac-Man's movement for 1 frame or 16,67ms when a pellet is eaten
             self.pacman.stop_frame = True
-            pg.time.set_timer(self.FRAME_SKIPPED, 1, True)
 
             #Increases current score by pellet.points or powerpellet.points amount
             self.score += pellet.points
@@ -170,10 +164,6 @@ class GameController(object):
             if event.type == pg.QUIT:
                 self.run = False
 
-            #checks if frame has been skipped and resets the stop_frame boolean if this is the case
-            if event.type == self.FRAME_SKIPPED:
-                self.pacman.stop_frame = False
-
     def render(self):
         '''
         Renders all visual elements
@@ -205,12 +195,6 @@ class GameController(object):
         if self.pacman.lives == 0:
             self.gameover = True
             self.pacman.show = False
-        
-    def set_events(self):
-        '''
-        Defines specific pygame events
-        '''
-        self.FRAME_SKIPPED = pg.USEREVENT
 
 
 if __name__ == "__main__":
@@ -219,4 +203,3 @@ if __name__ == "__main__":
     game = GameController()
     while game.run:
         game.update()
-    

@@ -201,4 +201,3 @@ class AllPellets(object):
         '''
         for pellet in self.pellet_list:
             pellet.render(screen)
-
