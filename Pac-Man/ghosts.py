@@ -113,6 +113,7 @@ class Ghost():
         self.frightened_sprite = sprite_load('blue_ghost1.png', 32, 32, 0)
         self.eaten_sprite = sprite_load('ghosteyes_left.png', 32, 32, 0)
         self.radius = 16
+        self.previous_tile = None
         #self.animation = None
         #self.animations = {}
     def update(self, deltatime, pacman):
@@ -181,6 +182,14 @@ class Ghost():
             The tile the target is located on
         '''
         self.target = target
+        results = self.get_directions()
+        min_distance = min(results.values())
+        for key, value in results.items():
+            if value <= min_distance:
+                self.direction = key
+                return
+    
+    def get_directions(self):
         results = dict()
         tile = self.get_current_tile()
         node = self.map.nodes.get((tile.x + 1, tile.y + 1), False)
@@ -191,14 +200,10 @@ class Ghost():
                     and node.check_dir(direction) and ((self.direction * -1).as_int() != direction.as_int())
                 if allow:
                     results[direction] = self.determine_distance(direction)
-            if len(results) == 0:
-                results[self.direction] = 1
-            min_distance = min(results.values())
-            for key, value in results.items():
-                if value <= min_distance:
-                    self.direction = key
-                    return
-    
+        if len(results) == 0:
+            results[self.direction] = 1
+        return results
+                
     def determine_distance(self, direction):
         '''
         Returns the distance between one possible path and the target
@@ -228,6 +233,7 @@ class Ghost():
         '''
         Sets the next tile which the ghost will go to
         '''
+        self.previous_tile = self.next_tile
         x, y = (self.get_current_tile() + self.direction).as_tuple()
         self.next_tile = (round(x), round(y))
 
@@ -267,11 +273,13 @@ class Ghost():
         screen : pygame.Surface
             The surface on which the ghost should be rendered
         '''
-        screen.blit(self.sprite, (self.position.x - TILEWIDTH, self.position.y - TILEWIDTH))
+        screen.blit(self.current_sprite, (self.position.x - TILEWIDTH, self.position.y - TILEWIDTH))
         #pg.draw.circle(screen, WHITE, (self.position.x, self.position.y), 15)
     def reverse(self):
         self.direction *= -1
-        self.set_next_tile()
+        container = self.previous_tile
+        self.previous_tile = self.next_tile
+        self.next_tile = container
 
     def collision_check(self, pacman):
         if (self.position - pacman.position).magnitude() <= self.radius:
@@ -285,7 +293,9 @@ class Ghost():
         pass
 
     def frightened(self):
-        pass
+        results = list(self.get_directions().keys())
+        random = randint(0, len(results) - 1)
+        self.direction = results[random]
 
     def eaten(self):
         pass
@@ -347,3 +357,16 @@ class AllGhosts():
     def check_events(self, pacman):
         for ghost in self:
             ghost.collision_check(pacman)
+    def power_pellet(self):
+        for ghost in self:
+            if ghost.mode < 3:
+                ghost.reverse()
+                ghost.mode = 2
+                ghost.speed = 60
+                ghost.current_sprite = ghost.frightened_sprite
+    def pp_over(self):
+        for ghost in self:
+            if ghost.mode < 3:
+                ghost.mode = 0
+                ghost.speed = 80
+                ghost.current_sprite = ghost.sprite

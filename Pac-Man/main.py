@@ -76,6 +76,7 @@ class GameController(object):
         self.pacman = Pacman(self.map)
         self.ghosts = AllGhosts(self.map, self.pacman)
         self.level = 1
+        self.PP_over = pg.USEREVENT
 
     def set_background(self):
         '''
@@ -137,6 +138,10 @@ class GameController(object):
             self.pellets.pellet_list.remove(pellet)
             print(self.score)
 
+            if pellet.name == "PowerPellet":
+                self.ghosts.power_pellet()
+                pg.time.set_timer(self.PP_over, 8000)
+
         #checks if the list of all uneaten pellets is empty
         if self.pellets.isEmpty():
             #no longer show Pac-Man's sprite
@@ -163,6 +168,8 @@ class GameController(object):
             #when player tries to close the window, the game is no longer permitted to run
             if event.type == pg.QUIT:
                 self.run = False
+            if event.type == self.PP_over:
+                self.ghosts.pp_over()
 
     def render(self):
         '''

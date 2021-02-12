@@ -9,6 +9,8 @@ class Pellet(object):
 
     Attributes
     ----------
+    name : string
+        The name of the pellet
     position : Vector2
         Position of the Pellet
     radius : int
@@ -25,6 +27,7 @@ class Pellet(object):
     
     '''
     def __init__(self, x, y):
+        self.name = 'Pellet'
         self.position = Vector2(x, y)
         self.radius = 2
         self.points = 10
@@ -59,6 +62,8 @@ class Powerpellet(object):
 
     Attributes
     ----------
+    name : string
+        The name of the pellet
     position : Vector2
         Position of the powerpellet
     radius : int
@@ -76,6 +81,7 @@ class Powerpellet(object):
         Draws the powerpellet and defines its rendering position
     '''
     def __init__(self, x, y):
+        self.name = "PowerPellet"
         self.position = Vector2(x, y)
         self.radius = 4
         self.points = 50
