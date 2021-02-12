@@ -8,6 +8,7 @@ from map_script import Map
 from pacman import Pacman
 from pellets import AllPellets
 from variables import Variables
+from ghosts import AllGhosts
 
 
 class GameController(object):
@@ -38,6 +39,8 @@ class GameController(object):
         Initializes a Pacman class object
     FRAME_SKIPPED : pygame.USEREVENT
         Defines a skipped frame as a pygame Userevent
+    level : int
+        Defines the current level
     
     Methods
     -------
@@ -76,8 +79,10 @@ class GameController(object):
         self.pellets = AllPellets()
         self.map = Map()
         self.pacman = Pacman(self.map)
+        self.ghosts = AllGhosts(self.map, self.pacman)
         self.set_events()
-        
+        self.level = 1
+
     def set_background(self):
         '''
         Creates a black background
@@ -101,6 +106,7 @@ class GameController(object):
             self.pacman.update(deltatime, self.map)
             self.check_pellet_collision()
             self.check_Events()
+            self.ghosts.update(deltatime, self.pacman)
             self.render()
         else:
 
@@ -109,7 +115,7 @@ class GameController(object):
 
     def reset(self):
         '''
-        Resets the level(Map, Pellets, Pac-Man)
+        Resets the level(Map, Pellets, Pac-Man, Ghosts)
         '''
         pass
 
@@ -143,6 +149,9 @@ class GameController(object):
             self.pacman.show = False
             print("No more pellets")
             #TODO: flash background, reset level, reset Pac-Man(save lives and score)
+
+    def check_ghost_events(self):
+        pass
 
     def check_Events(self):
         '''
@@ -183,7 +192,7 @@ class GameController(object):
         self.pellets.render(self.screen)
         #self.fruit.render(self.screen)
         self.pacman.render(self.screen)
-        #self.ghosts.render(self.screen)
+        self.ghosts.render(self.screen)
         #self.text.render(self.screen)
         self.pacman.render_lives(self.screen)
         pg.display.update()

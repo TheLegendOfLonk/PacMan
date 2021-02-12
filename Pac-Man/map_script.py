@@ -45,10 +45,11 @@ BIG_CORNER = tile_load("Corner_Big.png")
 WALL_DOUBLE = tile_load("Wall_Double.png")
 WALL = tile_load("Wall.png")
 
+
 class Tile():
     '''
     Each tile has its own sprite, which is rotated upon assignment, as well as
-    a x and a y coordinate
+    a x and a y coordinate. The coordinates are NOT in the center, but in the top-left corner
     '''
     def __init__(self, sprite, rotation, x, y):
         self.sprite = pg.transform.rotate(sprite, rotation)
@@ -74,6 +75,7 @@ sprite_assign = {
     "D": BLACK_TILE
 }   
 
+#TODO: New node class
 class Node():
     def __init__(self, up, left, down, right):
         self.up = bool(up)
@@ -215,7 +217,7 @@ class Map():
         }
     def teleport_check(self, obj):
         '''
-        Teleports pacman to other side if necessary
+        Teleports pacman or ghosts to other side if necessary
         '''
         factor = 1.5
         if not 0 - factor * TILEWIDTH < obj.position.x < SWIDTH + factor * TILEWIDTH:
