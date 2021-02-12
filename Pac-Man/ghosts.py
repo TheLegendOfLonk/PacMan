@@ -114,6 +114,7 @@ class Ghost():
         self.eaten_sprite = sprite_load('ghosteyes_left.png', 32, 32, 0)
         self.radius = 16
         self.previous_tile = None
+        self.previous_dir = None
         #self.animation = None
         #self.animations = {}
     def update(self, deltatime, pacman):
@@ -127,7 +128,11 @@ class Ghost():
         pacman : Pacman
             A Pacman class object
         '''
+        if self.direction != self.previous_dir:
+            self.previous_dir = self.direction
+            return
         self.position += self.direction * self.speed * deltatime
+        self.previous_dir = self.direction
         #Check whether passed a node
         if self.passed_next_tile():
             self.start_decision()
@@ -370,3 +375,5 @@ class AllGhosts():
                 ghost.mode = 0
                 ghost.speed = 80
                 ghost.current_sprite = ghost.sprite
+
+#TODO: Cruising Elroy
