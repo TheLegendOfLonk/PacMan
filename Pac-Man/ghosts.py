@@ -6,16 +6,86 @@ from map_script import sprite_load
 
 
 class Ghost():
+    '''
+    A class serving as a bluebprint for all ghosts
+
+    Parameters
+    ----------
+    _map : Map
+        The Map class object
+    position : Vector2
+        The starting position of the ghost
+    sprite : pygame.Surface
+        The sprite of the ghost
+    direction : Vector2
+    The starting direction of the ghost
+
+    Attributes
+    ----------
+    name : string
+        The name of the ghost
+    position : Vector2
+        The current position
+    speed : float
+        The speed in pixels per second
+    target : Vector2
+        The tile which is the ghosts goal
+    mode : int
+        Describes the mode the ghost is currently in
+    mode : dict
+        A dictionary which assigns integers to different mode methods
+    directions : list
+        a list containing all possible directions
+    points : int
+        The amount of points the ghost grants upon getting eaten
+    direction : Vector2
+        The current direction
+    banned_nodes : list
+        A list containing the coordinates of all nodes, which do not allow the ghost to change
+        its direction
+    map : Map
+        The Map class object
+    next_tile : tuple
+        A tuple containing the coordinates of the center of the next tile. Each time the ghost
+        reaches this tile, it will check whether it's on a node
+    sprite : pygame.Surface
+        The sprite of the ghost
+    dot_countdown : int
+        A countdown that releases the ghost upon reaching 0
+    waiting : bool
+        Indicates whether the ghost is still waiting in the center box
+
+    Methods
+    -------
+    update(deltatime, pacman)
+        Updates location and check if decision must be made
+    get_tile(pos)
+        Gets the tile of a certain object
+    get_current_tile()
+        Returns the tile the ghost is currently located on
+    determine_path(target)
+        Changes the current direction when on a node to which is the best according to the ghost AI
+    determine_distance(direction)
+        Returns the distance between one possible path and the target
+    start_decision()
+        Calls a function in dependence of the current mode and gets next tile
+    set_next_tile()
+        Sets the next tile which the ghost will go to
+    passed_next_tile()
+        Checks whether next tile was passed, and if yes, calls center
+    center(position):
+        Changes the position of the ghost to the center of the tile
+    render(screen):
+        Renders the ghost
+    '''
     def __init__(self, _map, position, sprite, direction=UP):
         self.name = "ghost"
         self.position = position
         self.speed = 80
-        self.tile = _map
-        self.target = Vector2()
+        self.target = None
         self.mode = 0
-        self.mode_timer = 0
         self.modes = {
-            0: self.chase,
+            0: self.chase, # pylint: disable=no-member
             1: self.scatter,
             2: self.frightened,
             3: self.eaten
@@ -32,14 +102,42 @@ class Ghost():
         self.map = _map
         self.next_tile = None
         self.sprite = sprite
+        self.dot_countdown = 0
+        self.waiting = False
         #self.animation = None
         #self.animations = {}
     def update(self, deltatime, pacman):
+        '''
+        Updates location and check if decision must be made
+
+        Parameters
+        ----------
+        deltatime : float
+            Changes with different FPS, so that all movement is independent of FPS
+        pacman : Pacman
+            A Pacman class object
+        '''
         self.position += self.direction * self.speed * deltatime
+
+        #Check whether passed a node
         if self.passed_next_tile():
             self.start_decision()
-    
-    def get_tile(self, pos=None):
+        if self.map.teleport_check(self):
+            self.set_next_tile()
+    def get_tile(self, pos):
+        '''
+        Gets the tile of a certain object
+
+        Parameter
+        ---------
+        pos : Vector2
+            Position of the object
+        
+        Retruns
+        -------
+        Vector2
+            A vector containing the tile
+        '''
         x = pos.x
         y = pos.y
         x = round((x - TILEWIDTH / 2) / TILEWIDTH)
@@ -47,7 +145,7 @@ class Ghost():
 
         return Vector2(x, y)
         
-    def get_current_tile(self,):
+    def get_current_tile(self):
         '''
         Returns the tile the ghost is currently located on
 
@@ -64,6 +162,14 @@ class Ghost():
         return Vector2(x, y)
 
     def determine_path(self, target):
+        '''
+        Changes the current direction when on a node to which is the best according to the ghost AI
+
+        Parameters
+        ----------
+        target : Vector2
+            The tile the target is located on
+        '''
         self.target = target
         results = dict()
         tile = self.get_current_tile()
@@ -77,8 +183,6 @@ class Ghost():
                     results[direction] = self.determine_distance(direction)
             if len(results) == 0:
                 results[self.direction] = 1
-            print(e[0] for e in results.items())
-            print(e[1] for e in results.items())
             min_distance = min(results.values())
             for key, value in results.items():
                 if value <= min_distance:
@@ -86,16 +190,29 @@ class Ghost():
                     return
     
     def determine_distance(self, direction):
+        '''
+        Returns the distance between one possible path and the target
+
+        Parameters
+        ----------
+        direction : Vector2
+            The direction of the path
+        
+        Returns
+        -------
+        float:
+            The distance between the target and the path
+        '''
         vector = self.target - (self.get_current_tile() + direction)
         return vector.magnitude()
     
     def start_decision(self):
+        '''
+        Calls a function in dependence of the current mode and gets next tile
+        '''
         func = self.modes.get(self.mode, False)
         func()
-        self.get_next_tile()
-
-    def chase(self):
-        pass
+        self.set_next_tile()
     
     def scatter(self):
         pass
@@ -106,11 +223,22 @@ class Ghost():
     def eaten(self):
         pass
 
-    def get_next_tile(self):
+    def set_next_tile(self):
+        '''
+        Sets the next tile which the ghost will go to
+        '''
         x, y = (self.get_current_tile() + self.direction).as_int()
         self.next_tile = (x, y)
 
     def passed_next_tile(self):
+        '''
+        Checks whether next tile was passed, and if yes, calls center
+
+        Returns
+        -------
+        bool
+            True if next tile was passed
+        '''
         coordinates = Vector2(self.next_tile[0] * TILEWIDTH + TILEWIDTH,
                               self.next_tile[1] * TILEHEIGHT + TILEHEIGHT)
         if self.direction.x < 0 and self.position.x < coordinates.x or \
@@ -124,11 +252,22 @@ class Ghost():
         return False
 
     def center(self, position):
+        '''
+        Changes the position of the ghost to the center of the tile
+        '''
         self.position = position
     
     def render(self, screen):
+        '''
+        Renders the ghost
+
+        Parameters
+        ----------
+        screen : pygame.Surface
+            The surface on which the ghost should be rendered
+        '''
         screen.blit(self.sprite, (self.position.x - 1.5 * TILEWIDTH, self.position.y - 1.5 * TILEWIDTH))
-        pg.draw.circle(screen, WHITE, (self.next_tile[0] * TILEWIDTH + TILEWIDTH / 2,self.next_tile[1] * TILEHEIGHT + TILEWIDTH / 2), 10)
+        # pg.draw.circle(screen, WHITE, (self.next_tile[0] * TILEWIDTH + TILEWIDTH / 2,self.next_tile[1] * TILEHEIGHT + TILEWIDTH / 2), 10)
     
         
 class Blinky(Ghost):
@@ -136,7 +275,7 @@ class Blinky(Ghost):
         sprite = sprite_load('blinky_left1.png', 32, 32, 0)
         super().__init__(_map, Vector2(14.25 * TILEWIDTH, 15 * TILEHEIGHT), sprite, direction=LEFT)
         self.pacman = pacman
-        self.get_next_tile()
+        self.set_next_tile()
 
     def chase(self):
         target = self.get_tile(self.pacman.position)
@@ -146,7 +285,10 @@ class Pinky(Ghost):
     def __init__(self, _map, pacman):
         super().__init__(_map, Vector2(14.5, 15), direction=DOWN)
         self.pacman = pacman
-        self.sprite = self.map.sprite_load('pinky_left1.png') 
+        self.sprite = self.map.sprite_load('pinky_left1.png')
+    def chase(self):
+        target = self.get_tile(self.pacman.position)
+        self.determine_path(target)
 
 class Inky(Ghost):
     def __init__(self, _map, pacman):

@@ -218,8 +218,14 @@ class Map():
     def teleport_check(self, obj):
         '''
         Teleports pacman or ghosts to other side if necessary
+
+        Returns
+        -------
+        bool
+            Whether or not object was teleported
         '''
         factor = 1.5
         if not 0 - factor * TILEWIDTH < obj.position.x < SWIDTH + factor * TILEWIDTH:
-            obj.position.x = round(SWIDTH - obj.position.x) 
+            obj.position.x = round(SWIDTH - obj.position.x)
+            return True
 
