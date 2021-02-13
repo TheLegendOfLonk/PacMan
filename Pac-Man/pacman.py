@@ -92,7 +92,7 @@ class Pacman():
         self.lives = 5
         self.life_sprite = _map.sprites.get('life')
         #self.startImage = self.spritesheet.getImage()
-        #TODO: self.animation = None
+        #self.animation = None
         #self.animation_list = {}
         #self.animations()
         #self.death_animation = False

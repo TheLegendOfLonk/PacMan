@@ -9,6 +9,7 @@ from pacman import Pacman
 from pellets import AllPellets
 from variables import Variables
 from ghosts import AllGhosts
+from text import AllText
 
 
 class GameController(object):
@@ -54,12 +55,12 @@ class GameController(object):
         Checks for collisions between Pac-Man and pellets
     check_Events()
         Checks for specific pygame events
-    render()
-        Renders all elements of the game every update cycle
     death()
         Handels Pac-Man's death
     set_events()
         Defines pygame events
+    render()
+        Renders all elements of the game every update cycle
     '''
 
     def __init__(self):
@@ -74,10 +75,12 @@ class GameController(object):
         self.clock = pg.time.Clock()
         self.gameover = False
         self.score = 0
+        self.highscore = 0
         self.pellets_eaten = 0
         self.run = True
         self.pellets = AllPellets()
         self.map = Map()
+        self.text = AllText()
         self.pacman = Pacman(self.map)
         self.ghosts = AllGhosts(self.map, self.pacman)
         self.set_events()
@@ -107,7 +110,9 @@ class GameController(object):
             self.check_pellet_collision()
             self.check_Events()
             self.ghosts.update(deltatime, self.pacman)
+            self.text.update_score(self.score)
             self.render()
+            
         else:
 
             #TODO:end level, background flashes, game over
@@ -150,9 +155,6 @@ class GameController(object):
             print("No more pellets")
             #TODO: flash background, reset level, reset Pac-Man(save lives and score)
 
-    def check_ghost_events(self):
-        pass
-
     def check_Events(self):
         '''
         Checks for pygame events
@@ -174,6 +176,22 @@ class GameController(object):
             if event.type == self.FRAME_SKIPPED:
                 self.pacman.stop_frame = False
 
+    def check_death(self):
+        '''
+        Handels Pac-Man's death
+        '''
+        #check if Pac-Man is dead
+        if self.pacman.lives == 0:
+            self.gameover = True
+            self.pacman.show = False
+            self.text.show_gameover()
+        
+    def set_events(self):
+        '''
+        Defines specific pygame events
+        '''
+        self.FRAME_SKIPPED = pg.USEREVENT
+    
     def render(self):
         '''
         Renders all visual elements
@@ -193,25 +211,9 @@ class GameController(object):
         #self.fruit.render(self.screen)
         self.pacman.render(self.screen)
         self.ghosts.render(self.screen)
-        #self.text.render(self.screen)
         self.pacman.render_lives(self.screen)
+        self.text.render(self.screen)
         pg.display.update()
-
-    def death(self):
-        '''
-        Handels Pac-Man's death
-        '''
-        #check if Pac-Man is dead
-        if self.pacman.lives == 0:
-            self.gameover = True
-            self.pacman.show = False
-        
-    def set_events(self):
-        '''
-        Defines specific pygame events
-        '''
-        self.FRAME_SKIPPED = pg.USEREVENT
-
 
 if __name__ == "__main__":
     
