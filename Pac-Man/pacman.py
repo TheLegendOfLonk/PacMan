@@ -5,6 +5,7 @@ import pygame as pg
 from pygame.locals import *
 from vectors import Vector2
 from settings import *
+from animation import Animation
 
 class Pacman():
     '''
@@ -92,10 +93,11 @@ class Pacman():
         self.lives = 5
         self.life_sprite = _map.sprites.get('life')
         #self.startImage = self.spritesheet.getImage()
-        #self.animation = None
-        #self.animation_list = {}
-        #self.animations()
-        #self.death_animation = False
+        self.sprite = _map.sprites.get('pacman_closed')
+        self.animation = None
+        self.animation_list = {}
+        self.define_animations()
+        self.death_animation = False
         self.stop_frame = False
         self.show = True
 
@@ -115,7 +117,7 @@ class Pacman():
 
         #Move to the faced direction
         self.position += self.direction*self.speed*deltatime
-        #TODO: self.update_Animations(deltatime)
+        #TODO: self.update_animations(deltatime)
 
         #Get the current tile pacman is on
         tile = self.get_tile()
@@ -379,6 +381,27 @@ class Pacman():
             if self.direction.y != 0:
                 self.position.x = int(tile.x * TILEWIDTH + TILEWIDTH / 2)
 
+    def define_animations(self):
+        anim = Animation("looping")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        anim.add_frame('pacman_open2.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        self.animation_list["right"] = anim
+
+
+        anim = Animation("looping")
+        anim.fps = 30
+        anim.add_frame('pacman_open1.png', 0, True)
+
+    def update_animations(self, deltatime):
+        if self.direction == LEFT:
+            self.animation = self.animation_list["left"]
+        elif self.direction == RIGHT:
+            self.animation = self.animation_list["right"]
+        self.sprite = self.animation.update(deltatime)
+
     def live_lost(self, screen):
         '''
         Decreases amount of lives by one and returns the current number to detect a Game Over
@@ -389,6 +412,8 @@ class Pacman():
             The game window
         '''
         self.lives -= 1
+        self.animation = self.animation_list["death"]
+        self.death_animation = True
 
         #TODO:call death animation
 

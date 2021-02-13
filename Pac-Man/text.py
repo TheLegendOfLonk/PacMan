@@ -51,7 +51,7 @@ class AllText():
         self.text_list["highscore_str"] = Text("HIGH SCORE", TILEHEIGHT-1, WHITE, TILEWIDTH*9.8, 0+5)
         self.text_list["highscore_int"] = Text("0".zfill(5), TILEHEIGHT-1, WHITE, TILEWIDTH*11.7, TILEHEIGHT+5)
         self.text_list["ready"] = Text("READY!",12, YELLOW, 12*TILEWIDTH, 20*TILEHEIGHT, True)
-        self.text_list["gameover"] = Text("GAME  OVER!",12, RED, 10*TILEWIDTH, 20*TILEHEIGHT, False)
+        self.text_list["gameover"] = Text("GAME  OVER",14, RED, 10*TILEWIDTH-5, 20*TILEHEIGHT, False)
 
     def update(self, deltatime):
         if len(self.temp_text) > 0:
@@ -61,7 +61,7 @@ class AllText():
                 if text.show:
                     temp_text.append(text)
             self.temp_text = temp_text
-    
+
     def update_score(self, score):
         self.text_list["score_int"].set_text(str(score).zfill(2))
 
@@ -72,11 +72,11 @@ class AllText():
         self.text_list["gameover"].show = True
 
     def add_temp_text(self, number, position):
-        #x, y = position.as_tuple(
-        #text = Text(str(number), 10, WHITE, x, y)
-        #text.display_length = 1
-        #self.temp_text.append(text)
-        pass
+        x, y = position.as_tuple()
+        text = Text(str(number), 10, WHITE, x, y)
+        text.display_length = 1
+        self.temp_text.append(text)
+        
     
     def render(self, screen):
         for key in self.text_list.keys():

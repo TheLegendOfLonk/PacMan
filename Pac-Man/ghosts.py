@@ -169,15 +169,14 @@ class AllGhosts():
             #Inky(_map, pacman),
             #Clyde(_map, pacman)
         ]
-    
+
     def __iter__(self):
         return iter(self.ghosts)
-    
+
     def update(self, deltatime, pacman):
         for ghost in self:
             ghost.update(deltatime, pacman)
-    
+
     def render(self, screen):
         for ghost in self:
             ghost.render(screen)
-

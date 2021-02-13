@@ -89,7 +89,7 @@ class GameController(object):
     def set_background(self):
         '''
         Creates a black background
-        
+
         Returns
         -------
         pygame.Surface
@@ -102,7 +102,7 @@ class GameController(object):
         Main update loop, updates the entire game each frame
         '''
         if not self.gameover:
-    
+
             #time difference between previous and currently rendered picture to make frame
             #length hardware independent
             deltatime = self.clock.tick(settings.FPS) / 1000
@@ -112,7 +112,7 @@ class GameController(object):
             self.ghosts.update(deltatime, self.pacman)
             self.text.update_score(self.score)
             self.render()
-            
+
         else:
 
             #TODO:end level, background flashes, game over
@@ -143,7 +143,7 @@ class GameController(object):
 
             #Increases current score by pellet.points or powerpellet.points amount
             self.score += pellet.points
-            
+
             #removes eaten pellets from the pellet list
             self.pellets.pellet_list.remove(pellet)
             print(self.score)
@@ -185,17 +185,17 @@ class GameController(object):
             self.gameover = True
             self.pacman.show = False
             self.text.show_gameover()
-        
+
     def set_events(self):
         '''
         Defines specific pygame events
         '''
         self.FRAME_SKIPPED = pg.USEREVENT
-    
+
     def render(self):
         '''
         Renders all visual elements
-        
+
         Returns
         -------
         pygame.Surface
@@ -216,7 +216,7 @@ class GameController(object):
         pg.display.update()
 
 if __name__ == "__main__":
-    
+
     #Initializes the- GameController class object
     game = GameController()
     while game.run:
