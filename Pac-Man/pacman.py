@@ -100,6 +100,7 @@ class Pacman():
         self.death_animation = False
         self.stop_frame = False
         self.show = True
+        self.previous_anim = None
 
     def update(self, deltatime, _map):
         '''
@@ -199,6 +200,8 @@ class Pacman():
         
         _map.teleport_check(self)
 
+        self.update_animations(deltatime)
+
     def move_on_node(self, node, direction, _map):
         '''
         Calls the node_check function to check,
@@ -283,8 +286,8 @@ class Pacman():
         '''
         TEMPORARY: Draws a circle on pacman's position
         '''
-        pos = self.position.as_int()
-        pg.draw.circle(screen, self.color, pos, self.radius)
+        pos = (self.position - Vector2(TILEWIDTH, TILEHEIGHT)).as_int()
+        screen.blit(self.sprite, pos)
         #TODO: add Pacman animation and sprite
 
     def get_tile(self):
@@ -390,16 +393,49 @@ class Pacman():
         anim.add_frame('pacman_open1.png', 0, False)
         self.animation_list["right"] = anim
 
+        anim = Animation("looping")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        anim.add_frame('pacman_open2.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        self.animation_list["left"] = anim
 
         anim = Animation("looping")
         anim.fps = 30
-        anim.add_frame('pacman_open1.png', 0, True)
+        anim.add_frame('pacman_closed.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        anim.add_frame('pacman_open2.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        self.animation_list["up"] = anim
+
+        anim = Animation("looping")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        anim.add_frame('pacman_open2.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        self.animation_list["down"] = anim
+
 
     def update_animations(self, deltatime):
+
         if self.direction == LEFT:
             self.animation = self.animation_list["left"]
-        elif self.direction == RIGHT:
+        if self.direction == RIGHT:
             self.animation = self.animation_list["right"]
+        elif self.direction == UP:
+            self.animation = self.animation_list["up"]
+        elif self.direction == DOWN:
+            self.animation = self.animation_list["down"]
+        else:
+            self.animation = self.animation_list['left']
+            
+
+        if self.animation != self.previous_anim:
+            for direction, anim in self.animation_list.items():
+                anim.reset()
+        self.previous_anim = self.animation
         self.sprite = self.animation.update(deltatime)
 
     def live_lost(self, screen):

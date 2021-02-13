@@ -14,7 +14,7 @@ class Animation():
     def add_frame(self, sprite, rotation, flip):
         if flip:
             self.sprites.append(pg.transform.flip(pg.image.load(
-            os.path.join(PATH, "assets", "Sprites", sprite)), False, True))
+            os.path.join(PATH, "assets", "Sprites", sprite)), flip, False))
         else:
             self.sprites.append(pg.transform.rotate(pg.image.load(
             os.path.join(PATH, "assets", "Sprites", sprite)), rotation))
@@ -45,6 +45,10 @@ class Animation():
             self.current_frame = 0
         
         return self.sprites[self.current_frame]
+    
+    def reset(self):
+        self.current_frame = 0
+        self.complete = False
 
     
         
