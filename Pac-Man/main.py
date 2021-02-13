@@ -136,7 +136,7 @@ class GameController(object):
             
             #removes eaten pellets from the pellet list
             self.pellets.pellet_list.remove(pellet)
-            print(self.score)
+            #print(self.score)
 
             if pellet.name == "PowerPellet":
                 self.ghosts.power_pellet()
@@ -169,7 +169,8 @@ class GameController(object):
             if event.type == pg.QUIT:
                 self.run = False
             if event.type == self.PP_over:
-                self.ghosts.pp_over()
+                pass
+                #self.ghosts.pp_over()
 
     def render(self):
         '''
