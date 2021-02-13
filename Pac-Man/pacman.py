@@ -95,12 +95,20 @@ class Pacman():
         #self.startImage = self.spritesheet.getImage()
         self.sprite = _map.sprites.get('pacman_closed')
         self.animation = None
+        self.previous_anim = None
         self.animation_list = {}
+        self.eating_animation_list = {}
         self.define_animations()
         self.death_animation = False
         self.stop_frame = False
         self.show = True
-        self.previous_anim = None
+        self.pellet_anim = 0
+        self.assign_eating_anim = {
+            self.animation_list["left"].name: self.eating_animation_list["left"],
+            self.animation_list["right"].name: self.eating_animation_list["right"],
+            self.animation_list["up"].name: self.eating_animation_list["up"],
+            self.animation_list["down"].name: self.eating_animation_list["down"]
+        }
 
     def update(self, deltatime, _map):
         '''
@@ -385,58 +393,111 @@ class Pacman():
                 self.position.x = int(tile.x * TILEWIDTH + TILEWIDTH / 2)
 
     def define_animations(self):
-        anim = Animation("looping")
+        anim = Animation("looping", "right")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        anim.add_frame('pacman_open2.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        self.animation_list["right"] = anim
+        self.animation = anim
+        self.previous_anim = anim
+
+        anim = Animation("looping", "left")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        anim.add_frame('pacman_open2.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        self.animation_list["left"] = anim
+
+        anim = Animation("looping", "up")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        anim.add_frame('pacman_open2.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        self.animation_list["up"] = anim
+
+        anim = Animation("looping", "down")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        anim.add_frame('pacman_open2.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        self.animation_list["down"] = anim
+
+        anim = Animation("singular", "right")
         anim.fps = 30
         anim.add_frame('pacman_closed.png', 0, False)
         anim.add_frame('pacman_open1.png', 0, False)
         anim.add_frame('pacman_open2.png', 0, False)
         anim.add_frame('pacman_open1.png', 0, False)
-        self.animation_list["right"] = anim
+        self.eating_animation_list["right"] = anim
 
-        anim = Animation("looping")
+        anim = Animation("singular", "left")
         anim.fps = 30
         anim.add_frame('pacman_closed.png', 0, True)
         anim.add_frame('pacman_open1.png', 0, True)
         anim.add_frame('pacman_open2.png', 0, True)
         anim.add_frame('pacman_open1.png', 0, True)
-        self.animation_list["left"] = anim
+        self.eating_animation_list["left"] = anim
 
-        anim = Animation("looping")
+        anim = Animation("singular", "up")
         anim.fps = 30
         anim.add_frame('pacman_closed.png', 90, False)
         anim.add_frame('pacman_open1.png', 90, False)
         anim.add_frame('pacman_open2.png', 90, False)
         anim.add_frame('pacman_open1.png', 90, False)
-        self.animation_list["up"] = anim
+        self.eating_animation_list["up"] = anim
 
-        anim = Animation("looping")
+        anim = Animation("singular", "down")
         anim.fps = 30
         anim.add_frame('pacman_closed.png', 270, False)
         anim.add_frame('pacman_open1.png', 270, False)
         anim.add_frame('pacman_open2.png', 270, False)
         anim.add_frame('pacman_open1.png', 270, False)
-        self.animation_list["down"] = anim
+        self.eating_animation_list["down"] = anim
 
 
     def update_animations(self, deltatime):
-
+        next_frame = True
         if self.direction == LEFT:
             self.animation = self.animation_list["left"]
-        if self.direction == RIGHT:
+        elif self.direction == RIGHT:
             self.animation = self.animation_list["right"]
         elif self.direction == UP:
             self.animation = self.animation_list["up"]
         elif self.direction == DOWN:
             self.animation = self.animation_list["down"]
         else:
-            self.animation = self.animation_list['left']
+            self.animation = self.previous_anim
+            next_frame = False
+
             
 
         if self.animation != self.previous_anim:
             for direction, anim in self.animation_list.items():
+                self.pellet_anim = 0
                 anim.reset()
         self.previous_anim = self.animation
-        self.sprite = self.animation.update(deltatime)
+        if self.pellet_anim > 0:
+            print(self.pellet_anim)
+            self.animation = self.eating_animation_list[self.animation.name]
+        else:
+            print("Skipped")
+        self.sprite = self.animation.update(deltatime, next_frame=next_frame)
+        if self.animation.complete:
+            self.animation.reset()
+            self.pellet_anim -= 1
 
     def live_lost(self, screen):
         '''

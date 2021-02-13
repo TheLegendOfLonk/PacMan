@@ -137,6 +137,9 @@ class GameController(object):
         if pellet:
             self.pellets_eaten += 1
 
+            #Amount of times, eating animation is played
+            self.pacman.pellet_anim = 2
+
             #stop Pac-Man's movement for 1 frame or 16,67ms when a pellet is eaten
             self.pacman.stop_frame = True
             pg.time.set_timer(self.FRAME_SKIPPED, 1, True)

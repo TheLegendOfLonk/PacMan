@@ -3,7 +3,8 @@ from settings import *
 import os
 
 class Animation():
-    def __init__(self, anim_type):
+    def __init__(self, anim_type, name):
+        self.name = name
         self.anim_type = anim_type
         self.current_frame = 0
         self.sprites = []
@@ -19,31 +20,31 @@ class Animation():
             self.sprites.append(pg.transform.rotate(pg.image.load(
             os.path.join(PATH, "assets", "Sprites", sprite)), rotation))
     
-    def update(self, deltatime):
-        if self.anim_type == "looping":
-            
-            self.deltatime += deltatime
-            if self.deltatime >= (1.0 / self.fps):
-                self.current_frame += 1
-                self.deltatime = 0
-            
-            if self.current_frame == len(self.sprites):
-                self.current_frame = 0
-        
-        elif self.anim_type == "singular":
-            if not self.complete:
-                self.deltatime += deltatime
+    def update(self, deltatime, next_frame=True):
+        if next_frame:
+            if self.anim_type == "looping":
                 
+                self.deltatime += deltatime
                 if self.deltatime >= (1.0 / self.fps):
                     self.current_frame += 1
                     self.deltatime = 0
                 
-                if self.current_frame == len(self.sprites) - 1:
-                    self.complete = True
+                if self.current_frame == len(self.sprites):
+                    self.current_frame = 0
             
-        elif self.anim_type == "frozen":
-            self.current_frame = 0
-        
+            elif self.anim_type == "singular":
+                if not self.complete:
+                    self.deltatime += deltatime
+                    
+                    if self.deltatime >= (1.0 / self.fps):
+                        self.current_frame += 1
+                        self.deltatime = 0
+                    
+                    if self.current_frame == len(self.sprites) - 1:
+                        self.complete = True
+                
+            elif self.anim_type == "frozen":
+                self.current_frame = 0
         return self.sprites[self.current_frame]
     
     def reset(self):
