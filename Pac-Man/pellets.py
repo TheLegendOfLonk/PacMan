@@ -207,3 +207,5 @@ class AllPellets(object):
         '''
         for pellet in self.pellet_list:
             pellet.render(screen)
+    def reset(self):
+        self.create_pellet_list()

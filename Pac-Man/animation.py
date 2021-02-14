@@ -11,7 +11,11 @@ class Animation():
         self.deltatime = 0
         self.complete = False
         self.fps = 0
-
+    
+    def reset(self):
+        self.current_frame = 0
+        self.complete = False
+    
     def add_frame(self, sprite, rotation, flip):
         if flip:
             self.sprites.append(pg.transform.flip(pg.image.load(
@@ -46,9 +50,7 @@ class Animation():
                 self.current_frame = 0
         return self.sprites[self.current_frame]
     
-    def reset(self):
-        self.current_frame = 0
-        self.complete = False
+    
 
     
         

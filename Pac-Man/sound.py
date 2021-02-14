@@ -1,9 +1,6 @@
 import pygame as pg
 from settings import *
 
-pg.mixer.init()
-pg.mixer.set_num_channels(8)
-
 
 def load_sound(name):
     return pg.mixer.Sound(os.path.join(PATH, "assets", "sounds", name))
@@ -22,8 +19,22 @@ def play_channel(name, volume, loops, index):
     pg.mixer.Sound.set_volume(sound, volume)
     channel = pg.mixer.Channel(index)
     channel.play(sound, loops)
+    return channel
+
 
 def play_sound(name, volume, loops):
     sound = load_sound(name)
     pg.mixer.Sound.set_volume(sound, volume)   
     sound.play(loops)
+
+def stop(channel):
+    channel.stop()
+
+def reset():
+    pg.mixer.quit()
+
+def start():
+    pg.mixer.init()
+    pg.mixer.set_num_channels(8)
+
+

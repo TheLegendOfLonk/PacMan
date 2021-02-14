@@ -6,6 +6,7 @@ from pygame.locals import *
 from vectors import Vector2
 from settings import *
 from animation import Animation
+from map_script import sprite_load
 
 class Pacman():
     '''
@@ -93,7 +94,7 @@ class Pacman():
         self.lives = 5
         self.life_sprite = _map.sprites.get('life')
         #self.startImage = self.spritesheet.getImage()
-        self.sprite = _map.sprites.get('pacman_closed')
+        self.sprite = sprite_load('pacman_closed.png', 32, 32, 0)
         self.animation = None
         self.previous_anim = None
         self.animation_list = {}
@@ -109,6 +110,7 @@ class Pacman():
             self.animation_list["up"].name: self.eating_animation_list["up"],
             self.animation_list["down"].name: self.eating_animation_list["down"]
         }
+        self.reset = False
 
     def update(self, deltatime, _map):
         '''
@@ -470,7 +472,7 @@ class Pacman():
         self.eating_animation_list["down"] = anim
 
         anim = Animation("singular", "death")
-        anim.fps = 10
+        anim.fps = 2
         anim.add_frame('pacman_open2.png', 90, False)
         anim.add_frame('pacman_death2.png', 0, False)
         anim.add_frame('pacman_death3.png', 0, False)
@@ -482,9 +484,17 @@ class Pacman():
         anim.add_frame('pacman_death9.png', 0, False)
         anim.add_frame('pacman_death10.png', 0, False)
         anim.add_frame('pacman_death11.png', 0, False)
+        anim.add_frame('Black.png', 0, False)
         self.animation_list['death'] = anim
 
     def update_animations(self, deltatime):
+        if self.death_animation:
+            self.sprite = self.animation.update(deltatime, next_frame=True)
+            if self.animation.complete:
+                self.show = False
+                self.reset = True
+            return
+
         next_frame = True
         if self.direction >= LEFT:
             self.animation = self.animation_list["left"]
@@ -507,12 +517,14 @@ class Pacman():
         self.previous_anim = self.animation
         if self.pellet_anim > 0:
             self.animation = self.eating_animation_list[self.animation.name]
+        if self.animation == None:
+            self.animation = self.animation_list["left"]
         self.sprite = self.animation.update(deltatime, next_frame=next_frame)
         if self.animation.complete:
             self.animation.reset()
             self.pellet_anim -= 1
 
-    def live_lost(self, screen):
+    def live_lost(self):
         '''
         Decreases amount of lives by one and returns the current number to detect a Game Over
 
@@ -522,10 +534,9 @@ class Pacman():
             The game window
         '''
         self.lives -= 1
+        self.direction = STOP
         self.animation = self.animation_list["death"]
         self.death_animation = True
-
-        #TODO:call death animation
 
     def render_lives(self, screen):
         '''
@@ -540,3 +551,17 @@ class Pacman():
             x = (2 + 2 * i) * TILEWIDTH
             y = 34 * TILEHEIGHT
             screen.blit(self.life_sprite, (x, y))
+    def reset_self(self):
+        self.position = Vector2(14*16, 27*16-8)
+        self.direction = STOP
+        self.death_animation = False
+        self.stop_frame = False
+        self.show = True
+        self.pellet_anim = 0
+        self.not_moved = True
+        self.remember_direction = None
+        self.sprite = sprite_load('pacman_closed.png', 32, 32, 0)
+        self.animation = None
+        self.previous_anim = None
+        self.reset = False
+        self.define_animations()
