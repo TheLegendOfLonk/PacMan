@@ -5,6 +5,7 @@ from random import randint
 from map_script import sprite_load
 import datetime
 from animation import Animation
+import sound
 
 
 class Ghost():
@@ -366,6 +367,8 @@ class Ghost():
             if self.mode == 2:
                 #self.current_sprite = self.eaten_sprite
                 self.mode = 3
+                sound.play_channel('eat_ghost.wav', 0.4, 0, 4)
+                sound.play_channel('retreating.wav', 0.4, -1, 3)
                 self.speed = 160
                 return self.mode
             elif self.mode < 2:
@@ -748,6 +751,9 @@ class AllGhosts():
 
     def update(self, deltatime, pacman):
         if self.frightened_timer and (datetime.datetime.now() - self.frightened_timer).seconds >= 8:
+            sound.channel1.stop()
+            pg.mixer.music.unpause()
+            
             self.pp_over()
             self.frightened_timer = None
         if not self.frightened_timer and \
