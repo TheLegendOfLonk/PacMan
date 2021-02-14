@@ -124,7 +124,6 @@ class Ghost():
         Renders the ghost
     '''
     def __init__(self, _map, position, sprite, direction=UP):
-        self.name = "ghost"
         self.position = position
         self.starting_position = position
         self.speed = 80
@@ -159,6 +158,8 @@ class Ghost():
         self.CAGE_ENTRANCE = Vector2(14 * TILEWIDTH, 14.5 * TILEHEIGHT)
         self.releasing = False
         self.corner = None
+        self.leaving = False
+        self.entering = False
         #self.animation = None
         #self.animations = {}
     def update(self, deltatime, pacman):
@@ -274,11 +275,19 @@ class Ghost():
         '''
         Calls a function in dependence of the current mode and gets next tile
         '''
-        if self.releasing:
+        if self.entering:
+            self.enter()
+        elif self.releasing:
             self.release() # pylint: disable=no-member
-            self.set_next_tile()
         elif self.waiting:
-            self.reverse()
+            if self.direction == DOWN:
+                self.direction = UP
+                self.next_tile = (self.get_current_tile().x, 16.5)
+                self.previous_tile = (self.get_current_tile().x, 17.5)
+            else:
+                self.direction = DOWN
+                self.next_tile = (self.get_current_tile().x, 17.5)
+                self.previous_tile = (self.get_current_tile().x, 15.5)
         else:
             func = self.modes.get(self.mode, False)
             func()
@@ -308,12 +317,12 @@ class Ghost():
                               self.next_tile[1] * TILEHEIGHT + TILEHEIGHT / 2)
         if self.direction.x < 0 and self.position.x < coordinates.x or \
             self.direction.x > 0 and self.position.x > coordinates.x:
-            if not self.waiting:
+            if not self.waiting and not self.releasing:
                 self.center(coordinates)
             return True
         elif self.direction.y < 0 and self.position.y < coordinates.y or \
             self.direction.y > 0 and self.position.y > coordinates.y:
-            if not self.waiting:
+            if not self.waiting and not self.releasing:
                 self.center(coordinates)
             return True
         return False
@@ -323,9 +332,6 @@ class Ghost():
         Changes the position of the ghost to the center of the tile
         '''
         self.position = position
-        if self.name == 'inky':
-
-            print(self.position)
     
     def render(self, screen):
         '''
@@ -351,6 +357,8 @@ class Ghost():
             if self.mode == 2:
                 self.current_sprite = self.eaten_sprite
                 self.mode = 3
+                self.speed = 160
+                return self.mode
             elif self.mode < 2:
                 print("Death lul")
 
@@ -358,44 +366,83 @@ class Ghost():
         self.determine_path(self.corner)
 
     def frightened(self):
+        self.target = self.get_current_tile()
         results = list(self.get_directions().keys())
         random = randint(0, len(results) - 1)
         self.direction = results[random]
 
-    def eaten(self):
-        pass
-
     def start_release(self):
         self.releasing = True
+        self.waiting = False
         self.speed = 40
 
     def release(self):
-        self.direction = self.release_order[0]
-        
+        pass
+    
+    def eaten(self):
+        target = Vector2(14, 14.5)
+        self.determine_path(target)
+
+    def enter(self):
+        pass
+
+
 class Blinky(Ghost):
-    def __init__(self, _map, pacman):
+    def __init__(self, _map, pacman, all_ghosts):
+        self.ghosts = all_ghosts
         self.name = 'blinky'
         sprite = sprite_load('blinky_left1.png', 32, 32, 0)
         super().__init__(_map, Vector2(14 * TILEWIDTH, 14.5 * TILEHEIGHT), sprite, direction=LEFT)
         self.pacman = pacman
         self.corner = Vector2(25, -1)
         self.set_next_tile()
+        self.release_order = [UP]
 
     def chase(self):
         target = self.get_tile(self.pacman.position)
         self.determine_path(target)
+    
+    def eaten(self):
+        if (self.position - self.CAGE_ENTRANCE).magnitude() - 8 > 0.2:
+            super().eaten()
+        else:
+            self.entering = True
+            self.releasing = True
+            self.position = self.CAGE_ENTRANCE
+            self.enter()
+    
+    def enter(self):
+        self.direction = self.release_order[-1] * -1
+        if self.position.y > 17.5 * TILEHEIGHT:
+            self.entering = False
+            self.mode = self.ghosts.current_mode
+            self.current_sprite = self.sprite
+            self.speed = 40
+    
+    def release(self):
+        self.direction = self.release_order[0]
+        if self.position.y < self.CAGE_ENTRANCE.y:
+            self.direction = LEFT
+            self.waiting = False
+            self.releasing = False
+            if self.mode < 2:
+                self.speed = 80
+            else:
+                self.speed = 60
+        self.set_next_tile()
+
 
 class Pinky(Ghost):
-    def __init__(self, _map, pacman):
+    def __init__(self, _map, pacman, all_ghosts):
+        self.ghosts = all_ghosts
         self.name = 'pinky'
         sprite = sprite_load('pinky_left1.png', 32, 32, 0)
-        super().__init__(_map, Vector2(14 * TILEWIDTH, 16.5 * TILEHEIGHT), sprite, direction=DOWN)
+        super().__init__(_map, Vector2(14 * TILEWIDTH, 17.5 * TILEHEIGHT), sprite, direction=DOWN)
         self.pacman = pacman
         self.corner = Vector2(3, -1)
         self.waiting = True
-        self.start_release()
-        self.set_next_tile()
         self.release_order = [UP]
+        self.next_tile = (self.get_current_tile().x, 17.5)
         
     def chase(self):
         target = self.get_tile(self.pacman.position) + self.pacman.direction * 4
@@ -404,28 +451,87 @@ class Pinky(Ghost):
         self.determine_path(target)
     
     def release(self):
-        super().release()
+        self.direction = self.release_order[0]
         if self.position.y < self.CAGE_ENTRANCE.y:
             self.direction = LEFT
             self.waiting = False
             self.releasing = False
-            self.speed = 80
+            if self.mode < 2:
+                self.speed = 80
+            else:
+                self.speed = 60
+        self.set_next_tile()
+    
+    def eaten(self):
+        if (self.position - self.CAGE_ENTRANCE).magnitude() - 8 > 0.2:
+            super().eaten()
+        else:
+            self.entering = True
+            self.releasing = True
+            self.position = self.CAGE_ENTRANCE
+            self.enter()
+    
+    def enter(self):
+        self.direction = self.release_order[-1] * -1
+        if self.position.y > 17.5 * TILEHEIGHT:
+            self.entering = False
+            self.mode = self.ghosts.current_mode
+            self.current_sprite = self.sprite
+            self.speed = 40
 
 
 class Inky(Ghost):
-    def __init__(self, _map, pacman,blinky):
+    def __init__(self, _map, pacman, blinky, all_ghosts):
+        self.ghosts = all_ghosts
         self.name = 'inky'
         sprite = sprite_load('inky_left1.png', 32, 32, 0)
-        super().__init__(_map, Vector2(12 * TILEWIDTH, 18 * TILEHEIGHT), sprite, direction=UP)
+        super().__init__(_map, Vector2(12 * TILEWIDTH, 17.5 * TILEHEIGHT), sprite, direction=UP)
         self.pacman = pacman
         self.waiting = True
         self.corner = Vector2(27, 34)
-        self.set_next_tile()
         self.blinky = blinky
+        self.next_tile = (self.get_current_tile().x, 16.5)
+        self.leaving = False
+        self.release_order = [RIGHT, UP]
+        self.RELEASE_ORDER = [RIGHT, UP]
         
 
     def release(self):
-        super().release()
+        if (self.starting_position - self.position).magnitude() <= 1 or self.leaving:
+            if not self.leaving:
+                self.position = self.starting_position
+                self.next_tile = (13.5, self.get_current_tile().y)
+                self.leaving = True
+                self.direction = self.release_order[0]
+            else:
+                self.direction = self.release_order[0]
+                self.set_next_tile()
+
+            if len(self.release_order) > 1:
+                self.release_order.pop(0)
+        else:
+            if self.direction == DOWN:
+                self.direction = UP
+                self.next_tile = (self.get_current_tile().x, 16.5)
+                self.previous_tile = (self.get_current_tile().x, 17.5)
+            else:
+                self.direction = DOWN
+                self.next_tile = (self.get_current_tile().x, 17.5)
+                self.previous_tile = (self.get_current_tile().x, 15.5)
+            self.set_next_tile()
+
+        if self.position.y < self.CAGE_ENTRANCE.y:
+            self.direction = LEFT
+            self.waiting = False
+            self.releasing = False
+            if self.mode < 2:
+                self.speed = 80
+            else:
+                self.speed = 60
+            self.leaving = False
+            self.position = self.CAGE_ENTRANCE
+            self.release_order = self.RELEASE_ORDER
+            self.set_next_tile()
         
     
     def chase(self):
@@ -433,30 +539,128 @@ class Inky(Ghost):
         vec1 = self.get_tile(self.pacman.position) + self.pacman.direction *  2
         vec2 = (vec1 - blinky_pos) * 2
         target = blinky_pos + vec2
-        print(target)
 
         if self.pacman.direction == UP:
             target += Vector2(2, 0)
         self.determine_path(target)
+    
+    def eaten(self):
+        if (self.position - self.CAGE_ENTRANCE).magnitude() - 8 > 0.2:
+            super().eaten()
+        else:
+            self.entering = True
+            self.releasing = True
+            self.position = self.CAGE_ENTRANCE
+            self.enter()
+    
+    def enter(self):
+        self.direction = self.release_order[-1] * -1
+        if self.position.y > 17.5 * TILEHEIGHT:
+            self.direction = self.release_order[-2] * -1
+            if self.position.x < self.starting_position.x:
+                self.position = self.starting_position
+                self.next_tile = (13.5, self.get_current_tile().y)
+                self.leaving = True
+                self.direction = self.release_order[0]
+                self.release_order.pop(0)
+                self.entering = False
+                self.mode = self.ghosts.current_mode
+                self.current_sprite = self.sprite
+                self.speed = 40
 
 class Clyde(Ghost):
-    def __init__(self, _map, pacman):
-        super().__init__(_map, Vector2(16 * TILEWIDTH, 16.5 * TILEHEIGHT), direction=UP)
+    def __init__(self, _map, pacman, all_ghosts):
+        self.ghosts = all_ghosts
+        self.name = 'clyde'
+        sprite = sprite_load('clyde_left1.png', 32, 32, 0)
+        super().__init__(_map, Vector2(16 * TILEWIDTH, 17.5 * TILEHEIGHT), sprite, direction=UP)
         self.pacman = pacman
-        self.sprite = self.map.sprite_load('clyde_left1.png') 
+        self.leaving = False
+        self.waiting = True
+        self.corner = Vector2(0, 34)
+        self.next_tile = (self.get_current_tile().x, 16.5)
+        self.release_order = [LEFT, UP]
+        self.RELEASE_ORDER = [LEFT, UP]
+
+    def chase(self):
+        target = self.get_tile(self.pacman.position)
+        if (target - self.get_current_tile()).magnitude() < 8:
+            target = self.corner
+        self.determine_path(target)
+
+    def release(self):
+        if (self.starting_position - self.position).magnitude() <= 1 or self.leaving:
+            if not self.leaving:
+                self.position = self.starting_position
+                self.next_tile = (13.5, self.get_current_tile().y)
+                self.leaving = True
+                self.direction = self.release_order[0]
+            else:
+                self.direction = self.release_order[0]
+                self.set_next_tile()
+
+            if len(self.release_order) > 1:
+                self.release_order.pop(0)
+        else:
+            if self.direction == DOWN:
+                self.direction = UP
+                self.next_tile = (self.get_current_tile().x, 16.5)
+                self.previous_tile = (self.get_current_tile().x, 17.5)
+            else:
+                self.direction = DOWN
+                self.next_tile = (self.get_current_tile().x, 17.5)
+                self.previous_tile = (self.get_current_tile().x, 15.5)
+            self.set_next_tile()
+
+        if self.position.y < self.CAGE_ENTRANCE.y:
+            self.direction = LEFT
+            self.waiting = False
+            self.releasing = False
+            if self.mode < 2:
+                self.speed = 80
+            else:
+                self.speed = 60
+            self.leaving = False
+            self.position = self.CAGE_ENTRANCE
+            self.release_order = self.RELEASE_ORDER
+            self.set_next_tile()
+
+    def eaten(self):
+        if (self.position - self.CAGE_ENTRANCE).magnitude() - 8 > 0.2:
+            super().eaten()
+        else:
+            self.entering = True
+            self.releasing = True
+            self.position = self.CAGE_ENTRANCE
+            self.enter()
+    
+    def enter(self):
+        self.direction = self.release_order[-1] * -1
+        if self.position.y > 17.5 * TILEHEIGHT:
+            self.direction = self.release_order[-2] * -1
+            if self.position.x > self.starting_position.x:
+                self.position = self.starting_position
+                self.next_tile = (13.5, self.get_current_tile().y)
+                self.leaving = True
+                self.direction = self.release_order[0]
+                self.release_order.pop(0)
+                self.entering = False
+                self.mode = self.ghosts.current_mode
+                self.current_sprite = self.sprite
+                self.speed = 40
 
 class AllGhosts():
     def __init__(self, _map, pacman):
         self.pacman = pacman
-        self.blinky = Blinky(_map, pacman)
-        self.pinky = Pinky(_map, pacman)
-        self.inky = Inky(_map, pacman, self.blinky)
-        #self.clyde = Clyde(_map, pacman)
+        self.blinky = Blinky(_map, pacman, self)
+        self.pinky = Pinky(_map, pacman, self)
+        self.inky = Inky(_map, pacman, self.blinky, self)
+        self.clyde = Clyde(_map, pacman, self)
         self.ghosts = [
             self.blinky,
             self.pinky,
             self.inky,
-            #self.clyde
+            self.clyde
         ]
         
         self.frightened_timer = None
@@ -501,9 +705,18 @@ class AllGhosts():
         for ghost in self:
             ghost.render(screen)
 
-    def check_events(self, pacman):
+    def check_events(self, pacman, pellets_eaten, release_after_pellets):
+        ret = False
+        if len(release_after_pellets) > 0 and release_after_pellets[0] <= pellets_eaten:
+            self.release_next()
+            ret = True
         for ghost in self:
-            ghost.collision_check(pacman)
+            if ghost.collision_check(pacman) == 3:
+                if all(ghost.mode == 3 for ghost in self):
+                    self.pp_over()
+                    self.frightened_timer = None
+
+        return ret
     
     def power_pellet(self):
         if self.chase_timer and not self.frightened_timer:
@@ -511,10 +724,13 @@ class AllGhosts():
             print("Remaining:", self.chase_time)
         self.frightened_timer = datetime.datetime.now()
         for ghost in self:
-            if ghost.mode < 2:
+            if ghost.mode < 2 and not ghost.releasing:
                 ghost.reverse()
                 ghost.mode = 2
                 ghost.speed = 60
+                ghost.current_sprite = ghost.frightened_sprite
+            elif ghost.releasing:
+                ghost.mode = 2
                 ghost.current_sprite = ghost.frightened_sprite
     def pp_over(self):
         self.set_chase_timer(self.chase_time)
@@ -526,5 +742,11 @@ class AllGhosts():
     def set_chase_timer(self, time):
         self.chase_timer = datetime.datetime.now()
         self.chase_time = time
+    
+    def release_next(self):
+        for ghost in self:
+            if ghost.waiting and not ghost.releasing:
+                ghost.start_release()
+                return
 
 #TODO: Cruising Elroy

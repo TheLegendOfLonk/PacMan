@@ -82,6 +82,7 @@ class GameController(object):
         self.ghosts = AllGhosts(self.map, self.pacman)
         self.level = 1
         self.PP_over = pg.USEREVENT
+        self.release_after_pellets = [0, 30, 60]
 
     def set_background(self):
         '''
@@ -109,7 +110,8 @@ class GameController(object):
             self.ghosts.update(deltatime, self.pacman)
             self.set_highscore()
             self.text.update_score(self.score, self.highscore)
-            self.ghosts.check_events(self.pacman)
+            if self.ghosts.check_events(self.pacman,self.pellets_eaten, self.release_after_pellets):
+                self.release_after_pellets.pop(0)
             self.render()
 
         else:
@@ -203,7 +205,7 @@ class GameController(object):
     def render(self):
         '''
         Renders all visual elements
-
+6
         Returns
         -------
         pygame.Surface

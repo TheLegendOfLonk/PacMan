@@ -65,7 +65,7 @@ class AllText():
     def update_score(self, score, highscore):
         self.text_list["score_int"].set_text(str(score).zfill(2))
         if score >= highscore:
-            self.text_list["highscore_int"].set_text(str(highscore).zfill(2))
+            self.text_list["highscore_int"].set_text(str(highscore).zfill(5))
 
 
     def stop_showing_ready(self):
