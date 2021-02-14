@@ -3,13 +3,16 @@ Runs the game
 '''
 import pygame as pg
 from pygame.locals import *
-import settings
+from settings import *
+import sound
 from map_script import Map
 from pacman import Pacman
 from pellets import AllPellets
 from variables import Variables
 from ghosts import AllGhosts
 from text import AllText
+import time
+
 
 class GameController(object):
     '''
@@ -66,12 +69,13 @@ class GameController(object):
         pg.init()
         
         #Set screen and background
-        self.screen = pg.display.set_mode(settings.SCREENSIZE, 0, 32)
+        self.screen = pg.display.set_mode(SCREENSIZE, 0, 32)
         self.background = None
         self.set_background()
         self.clock = pg.time.Clock()
         self.gameover = False
         self.score = 0
+        self.waiting = False
         self.highscore = 0
         self.pellets_eaten = 0
         self.run = True
@@ -82,7 +86,11 @@ class GameController(object):
         self.ghosts = AllGhosts(self.map, self.pacman)
         self.level = 1
         self.PP_over = pg.USEREVENT
-
+        self.start_game()
+        
+        self.background_music = sound.background_music('siren_1.wav', 0.4)
+        
+ 
     def set_background(self):
         '''
         Creates a black background
@@ -91,8 +99,16 @@ class GameController(object):
         -------
         pygame.Surface
         '''
-        self.background = pg.surface.Surface(settings.SCREENSIZE).convert()
-        self.background.fill(settings.BLACK)
+        self.background = pg.surface.Surface(SCREENSIZE).convert()
+        self.background.fill(BLACK)   
+        
+    def start_game(self):
+        self.waiting = True
+        self.update()
+        sound.play_sound('game_start.wav', 0.5, 0)
+        pg.time.wait(5000)
+        self.waiting = False
+        
 
     def update(self):
         '''
@@ -102,7 +118,10 @@ class GameController(object):
 
             #time difference between previous and currently rendered picture to make frame
             #length hardware independent
-            deltatime = self.clock.tick(settings.FPS) / 1000
+            if not self.waiting:
+                deltatime = self.clock.tick(FPS) / 1000
+            else:
+                deltatime = 0
             self.pacman.update(deltatime, self.map)
             self.check_pellet_collision()
             self.check_Events()
@@ -140,9 +159,14 @@ class GameController(object):
         if pellet:
             self.pellets_eaten += 1
 
+            
+
             #Amount of times, eating animation is played
             self.pacman.pellet_anim = 2
-
+            
+            #Play eating sound(wakawakawaka)
+            sound.play_channel('pellet_munch_1.wav', 0.2, 0, 1)
+            
             #stop Pac-Man's movement for 1 frame or 16,67ms when a pellet is eaten
             self.pacman.stop_frame = True
 
@@ -154,6 +178,9 @@ class GameController(object):
             #print(self.score)
 
             if pellet.name == "PowerPellet":
+                pg.mixer.music.pause()
+                sound.play_channel('power_pellet.wav', 0.2, -1, 0)
+
                 self.ghosts.power_pellet()
                 pg.time.set_timer(self.PP_over, 8000)
 
