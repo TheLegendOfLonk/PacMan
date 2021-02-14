@@ -45,6 +45,11 @@ class Vector2():
 
     def __mul__(self, scalar):
         return Vector2(self.x * scalar, self.y * scalar)
+    
+    def __ge__(self, other):
+        if other:
+            return self.x == other.x and self.y == other.y
+        return False
 
     def as_tuple(self):
         '''
@@ -132,3 +137,4 @@ class Vector2():
             return self
         _sum = abs(self.x) + abs(self.y)
         return Vector2(self.x / _sum, self.y / _sum)
+    

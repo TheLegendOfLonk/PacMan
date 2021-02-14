@@ -4,6 +4,7 @@ from vectors import Vector2
 from random import randint
 from map_script import sprite_load
 import datetime
+from animation import Animation
 
 
 class Ghost():
@@ -150,8 +151,8 @@ class Ghost():
         self.pellet_countdown = 0
         self.waiting = False
         self.current_sprite = self.sprite
-        self.frightened_sprite = sprite_load('blue_ghost1.png', 32, 32, 0)
-        self.eaten_sprite = sprite_load('ghosteyes_left.png', 32, 32, 0)
+        #self.frightened_sprite = sprite_load('blue_ghost1.png', 32, 32, 0)
+        #self.eaten_sprite = sprite_load('ghosteyes_left.png', 32, 32, 0)
         self.radius = 16
         self.previous_tile = self.get_current_tile().as_tuple()
         self.previous_dir = None
@@ -160,6 +161,10 @@ class Ghost():
         self.corner = None
         self.leaving = False
         self.entering = False
+        self.animation = None
+        self.previous_anim = None
+        self.animations = {}
+        self.define_animations()
         #self.animation = None
         #self.animations = {}
     def update(self, deltatime, pacman):
@@ -183,6 +188,8 @@ class Ghost():
             self.start_decision()
         if self.map.teleport_check(self):
             self.set_next_tile()
+
+        self.update_animations(deltatime)
         
 
     def get_tile(self, pos):
@@ -342,6 +349,8 @@ class Ghost():
         screen : pygame.Surface
             The surface on which the ghost should be rendered
         '''
+        self.test = self.current_sprite
+        
         screen.blit(self.current_sprite, (self.position.x - TILEWIDTH, self.position.y - TILEWIDTH))
         #pg.draw.circle(screen, WHITE, (self.position.x, self.position.y), 15)
     def reverse(self):
@@ -355,7 +364,7 @@ class Ghost():
     def collision_check(self, pacman):
         if (self.position - pacman.position).magnitude() <= self.radius:
             if self.mode == 2:
-                self.current_sprite = self.eaten_sprite
+                #self.current_sprite = self.eaten_sprite
                 self.mode = 3
                 self.speed = 160
                 return self.mode
@@ -386,6 +395,69 @@ class Ghost():
     def enter(self):
         pass
 
+    def define_animations(self):
+        directions = ['up', 'left', 'down', 'right']
+        for _dir in directions:
+            anim = Animation('looping', _dir)
+            anim.fps = 10
+            if _dir == 'right':
+                anim.add_frame(f"{self.name}_left1.png", 0, True)
+                anim.add_frame(f"{self.name}_left2.png", 0, True)
+            else:
+                anim.add_frame(f"{self.name}_{_dir}1.png", 0, False)
+                anim.add_frame(f"{self.name}_{_dir}2.png", 0, False)
+
+            self.animations[anim.name] = anim
+
+            anim.fps = 10
+            anim = Animation('frozen', 'eyes_' + _dir)
+            anim.add_frame('ghost_eyes_' + _dir + '.png', 0, False)
+
+            self.animations[anim.name] = anim
+
+        anim = Animation('looping', 'frightened')
+        anim.fps = 10
+        anim.add_frame('blue_ghost1.png', 0, False)
+        anim.add_frame('ghost_frightened2.png', 0, False)
+        self.animations[anim.name] = anim
+
+        anim = Animation('looping', 'frightened_flash')
+        anim.fps = 10
+        anim.add_frame('ghost_frightened_flash1.png', 0, False)
+        anim.add_frame('ghost_frightened_flash2.png', 0 , False)
+        self.animations[anim.name] = anim
+    
+    def update_animations(self, deltatime):
+        if self.mode < 2:
+            if self.direction >= LEFT:
+                self.animation = self.animations["left"]
+            elif self.direction >= RIGHT:
+                self.animation = self.animations["right"]
+            elif self.direction >= UP:
+                self.animation = self.animations["up"]
+            elif self.direction >= DOWN:
+                self.animation = self.animations["down"]
+
+        elif self.mode == 2:
+            self.animation = self.animations['frightened']
+        
+        elif self.mode == 3:
+            if self.direction >= LEFT:
+                self.animation = self.animations["eyes_left"]
+            elif self.direction >= RIGHT:
+                self.animation = self.animations["eyes_right"]
+            elif self.direction >= UP:
+                self.animation = self.animations["eyes_up"]
+            elif self.direction >= DOWN:
+                self.animation = self.animations["eyes_down"]
+        if not self.previous_anim:
+            self.previous_anim = self.animation
+        if self.animation.name != self.previous_anim.name:
+            for direction, anim in self.animations.items():
+                anim.reset()
+        self.previous_anim = self.animation
+        self.current_sprite = self.animation.update(deltatime, next_frame=True)
+
 
 class Blinky(Ghost):
     def __init__(self, _map, pacman, all_ghosts):
@@ -412,11 +484,10 @@ class Blinky(Ghost):
             self.enter()
     
     def enter(self):
-        self.direction = self.release_order[-1] * -1
+        self.direction = DOWN#self.release_order[-1] * -1
         if self.position.y > 17.5 * TILEHEIGHT:
             self.entering = False
             self.mode = self.ghosts.current_mode
-            self.current_sprite = self.sprite
             self.speed = 40
     
     def release(self):
@@ -430,6 +501,7 @@ class Blinky(Ghost):
             else:
                 self.speed = 60
         self.set_next_tile()
+
 
 
 class Pinky(Ghost):
@@ -472,11 +544,10 @@ class Pinky(Ghost):
             self.enter()
     
     def enter(self):
-        self.direction = self.release_order[-1] * -1
+        self.direction = DOWN#self.release_order[-1] * -1
         if self.position.y > 17.5 * TILEHEIGHT:
             self.entering = False
             self.mode = self.ghosts.current_mode
-            self.current_sprite = self.sprite
             self.speed = 40
 
 
@@ -554,9 +625,9 @@ class Inky(Ghost):
             self.enter()
     
     def enter(self):
-        self.direction = self.release_order[-1] * -1
+        self.direction = DOWN#self.release_order[-1] * -1
         if self.position.y > 17.5 * TILEHEIGHT:
-            self.direction = self.release_order[-2] * -1
+            self.direction = RIGHT#self.release_order[-2] * -1
             if self.position.x < self.starting_position.x:
                 self.position = self.starting_position
                 self.next_tile = (13.5, self.get_current_tile().y)
@@ -565,7 +636,6 @@ class Inky(Ghost):
                 self.release_order.pop(0)
                 self.entering = False
                 self.mode = self.ghosts.current_mode
-                self.current_sprite = self.sprite
                 self.speed = 40
 
 class Clyde(Ghost):
@@ -635,9 +705,9 @@ class Clyde(Ghost):
             self.enter()
     
     def enter(self):
-        self.direction = self.release_order[-1] * -1
+        self.direction = DOWN #self.release_order[-1] * -1
         if self.position.y > 17.5 * TILEHEIGHT:
-            self.direction = self.release_order[-2] * -1
+            self.direction = RIGHT#self.release_order[-2] * -1
             if self.position.x > self.starting_position.x:
                 self.position = self.starting_position
                 self.next_tile = (13.5, self.get_current_tile().y)
@@ -646,7 +716,6 @@ class Clyde(Ghost):
                 self.release_order.pop(0)
                 self.entering = False
                 self.mode = self.ghosts.current_mode
-                self.current_sprite = self.sprite
                 self.speed = 40
 
 class AllGhosts():
@@ -667,7 +736,7 @@ class AllGhosts():
         self.chase_timer = None
         self.chase_time = None
         self.chase_time_list = [10, 10, 10, 10, 10]
-        self.set_chase_timer(self.chase_time_list[0])
+        self.set_chase_timer(self.chase_time_list[0]) # --------------------------------------
         self.chase_time_list.pop(0)
         self.current_mode = 1
         self.chase_only = False
@@ -728,10 +797,10 @@ class AllGhosts():
                 ghost.reverse()
                 ghost.mode = 2
                 ghost.speed = 60
-                ghost.current_sprite = ghost.frightened_sprite
+                #ghost.current_sprite = ghost.frightened_sprite
             elif ghost.releasing:
                 ghost.mode = 2
-                ghost.current_sprite = ghost.frightened_sprite
+                #ghost.current_sprite = ghost.frightened_sprite
     def pp_over(self):
         self.set_chase_timer(self.chase_time)
         for ghost in self:

@@ -486,19 +486,17 @@ class Pacman():
 
     def update_animations(self, deltatime):
         next_frame = True
-        if self.direction == LEFT:
+        if self.direction >= LEFT:
             self.animation = self.animation_list["left"]
-        elif self.direction == RIGHT:
+        elif self.direction >= RIGHT:
             self.animation = self.animation_list["right"]
-        elif self.direction == UP:
+        elif self.direction >= UP:
             self.animation = self.animation_list["up"]
-        elif self.direction == DOWN:
+        elif self.direction >= DOWN:
             self.animation = self.animation_list["down"]
         else:
             self.animation = self.previous_anim
             next_frame = False
-
-            
 
         if self.animation != self.previous_anim:
             self.pellet_anim = 0

@@ -28,7 +28,6 @@ class Animation():
                 if self.deltatime >= (1.0 / self.fps):
                     self.current_frame += 1
                     self.deltatime = 0
-                
                 if self.current_frame == len(self.sprites):
                     self.current_frame = 0
             
