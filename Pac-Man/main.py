@@ -11,7 +11,6 @@ from variables import Variables
 from ghosts import AllGhosts
 from text import AllText
 
-
 class GameController(object):
     '''
     Manages the game
@@ -38,8 +37,6 @@ class GameController(object):
         Initializes a Map class object
     pacman : Pacman
         Initializes a Pacman class object
-    FRAME_SKIPPED : pygame.USEREVENT
-        Defines a skipped frame as a pygame Userevent
     level : int
         Defines the current level
     
@@ -83,8 +80,8 @@ class GameController(object):
         self.text = AllText()
         self.pacman = Pacman(self.map)
         self.ghosts = AllGhosts(self.map, self.pacman)
-        self.set_events()
         self.level = 1
+        self.PP_over = pg.USEREVENT
 
     def set_background(self):
         '''
@@ -112,6 +109,7 @@ class GameController(object):
             self.ghosts.update(deltatime, self.pacman)
             self.set_highscore()
             self.text.update_score(self.score, self.highscore)
+            self.ghosts.check_events(self.pacman)
             self.render()
 
         else:
@@ -147,14 +145,17 @@ class GameController(object):
 
             #stop Pac-Man's movement for 1 frame or 16,67ms when a pellet is eaten
             self.pacman.stop_frame = True
-            pg.time.set_timer(self.FRAME_SKIPPED, 1, True)
 
             #Increases current score by pellet.points or powerpellet.points amount
             self.score += pellet.points
 
             #removes eaten pellets from the pellet list
             self.pellets.pellet_list.remove(pellet)
-            print(self.score)
+            #print(self.score)
+
+            if pellet.name == "PowerPellet":
+                self.ghosts.power_pellet()
+                pg.time.set_timer(self.PP_over, 8000)
 
         #checks if the list of all uneaten pellets is empty
         if self.pellets.isEmpty():
@@ -179,10 +180,9 @@ class GameController(object):
             #when player tries to close the window, the game is no longer permitted to run
             if event.type == pg.QUIT:
                 self.run = False
-
-            #checks if frame has been skipped and resets the stop_frame boolean if this is the case
-            if event.type == self.FRAME_SKIPPED:
-                self.pacman.stop_frame = False
+            if event.type == self.PP_over:
+                pass
+                #self.ghosts.pp_over()
 
     def check_death(self):
         '''
@@ -223,10 +223,19 @@ class GameController(object):
         self.text.render(self.screen)
         pg.display.update()
 
+    def death(self):
+        '''
+        Handels Pac-Man's death
+        '''
+        #check if Pac-Man is dead
+        if self.pacman.lives == 0:
+            self.gameover = True
+            self.pacman.show = False
+
+
 if __name__ == "__main__":
 
     #Initializes the- GameController class object
     game = GameController()
     while game.run:
         game.update()
-    

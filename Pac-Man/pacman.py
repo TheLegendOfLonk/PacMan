@@ -121,7 +121,9 @@ class Pacman():
         _map : Map
             The Map object for sprites and tiles
         '''
+        #check if frame has to be skipped
         if self.stop_frame:
+            self.stop_frame = False
             return
 
         #Move to the faced direction
