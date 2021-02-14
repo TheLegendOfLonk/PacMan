@@ -507,7 +507,6 @@ class Pacman():
         self.previous_anim = self.animation
         if self.pellet_anim > 0:
             self.animation = self.eating_animation_list[self.animation.name]
-        else:
         self.sprite = self.animation.update(deltatime, next_frame=next_frame)
         if self.animation.complete:
             self.animation.reset()
