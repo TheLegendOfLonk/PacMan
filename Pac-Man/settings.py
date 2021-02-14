@@ -3,6 +3,7 @@ Stores all settings
 '''
 #path
 import os
+
 from vectors import Vector2
 
 PATH = os.path.abspath(__file__)[:-12]

@@ -3,5 +3,8 @@
     "python.linting.enabled": true,
     "python.linting.pylintArgs":[
         "--disable=unused-wildcard-import", "--extension-pkg-whitelist=pygame", "--disable=invalid-name", "--disable=wildcard-import"
-    ]
+    ],
+    "liveshare.allowGuestDebugControl": true,
+    "liveshare.allowGuestTaskControl": true,
+    "liveshare.diagnosticLogging": true
 }

@@ -8,6 +8,8 @@ from map_script import Map
 from pacman import Pacman
 from pellets import AllPellets
 from variables import Variables
+from ghosts import AllGhosts
+from text import AllText
 
 
 class GameController(object):
@@ -38,6 +40,8 @@ class GameController(object):
         Initializes a Pacman class object
     FRAME_SKIPPED : pygame.USEREVENT
         Defines a skipped frame as a pygame Userevent
+    level : int
+        Defines the current level
     
     Methods
     -------
@@ -51,12 +55,12 @@ class GameController(object):
         Checks for collisions between Pac-Man and pellets
     check_Events()
         Checks for specific pygame events
-    render()
-        Renders all elements of the game every update cycle
     death()
         Handels Pac-Man's death
     set_events()
         Defines pygame events
+    render()
+        Renders all elements of the game every update cycle
     '''
 
     def __init__(self):
@@ -71,17 +75,21 @@ class GameController(object):
         self.clock = pg.time.Clock()
         self.gameover = False
         self.score = 0
+        self.highscore = 0
         self.pellets_eaten = 0
         self.run = True
         self.pellets = AllPellets()
         self.map = Map()
+        self.text = AllText()
         self.pacman = Pacman(self.map)
+        self.ghosts = AllGhosts(self.map, self.pacman)
         self.set_events()
-        
+        self.level = 1
+
     def set_background(self):
         '''
         Creates a black background
-        
+
         Returns
         -------
         pygame.Surface
@@ -94,22 +102,30 @@ class GameController(object):
         Main update loop, updates the entire game each frame
         '''
         if not self.gameover:
-    
+
             #time difference between previous and currently rendered picture to make frame
             #length hardware independent
             deltatime = self.clock.tick(settings.FPS) / 1000
             self.pacman.update(deltatime, self.map)
             self.check_pellet_collision()
             self.check_Events()
+            self.ghosts.update(deltatime, self.pacman)
+            self.set_highscore()
+            self.text.update_score(self.score, self.highscore)
             self.render()
+
         else:
 
             #TODO:end level, background flashes, game over
             pass
+    
+    def set_highscore(self):
+        if self.highscore < self.score:
+            self.highscore = self.score
 
     def reset(self):
         '''
-        Resets the level(Map, Pellets, Pac-Man)
+        Resets the level(Map, Pellets, Pac-Man, Ghosts)
         '''
         pass
 
@@ -126,13 +142,16 @@ class GameController(object):
         if pellet:
             self.pellets_eaten += 1
 
+            #Amount of times, eating animation is played
+            self.pacman.pellet_anim = 2
+
             #stop Pac-Man's movement for 1 frame or 16,67ms when a pellet is eaten
             self.pacman.stop_frame = True
-            pg.time.set_timer(self.FRAME_SKIPPED, int(1000 / settings.FPS), True)
+            pg.time.set_timer(self.FRAME_SKIPPED, 1, True)
 
             #Increases current score by pellet.points or powerpellet.points amount
             self.score += pellet.points
-            
+
             #removes eaten pellets from the pellet list
             self.pellets.pellet_list.remove(pellet)
             print(self.score)
@@ -165,10 +184,26 @@ class GameController(object):
             if event.type == self.FRAME_SKIPPED:
                 self.pacman.stop_frame = False
 
+    def check_death(self):
+        '''
+        Handels Pac-Man's death
+        '''
+        #check if Pac-Man is dead
+        if self.pacman.lives == 0:
+            self.gameover = True
+            self.pacman.show = False
+            self.text.show_gameover()
+
+    def set_events(self):
+        '''
+        Defines specific pygame events
+        '''
+        self.FRAME_SKIPPED = pg.USEREVENT
+
     def render(self):
         '''
         Renders all visual elements
-        
+
         Returns
         -------
         pygame.Surface
@@ -183,30 +218,14 @@ class GameController(object):
         self.pellets.render(self.screen)
         #self.fruit.render(self.screen)
         self.pacman.render(self.screen)
-        #self.ghosts.render(self.screen)
-        #self.text.render(self.screen)
+        self.ghosts.render(self.screen)
         self.pacman.render_lives(self.screen)
+        self.text.render(self.screen)
         pg.display.update()
 
-    def death(self):
-        '''
-        Handels Pac-Man's death
-        '''
-        #check if Pac-Man is dead
-        if self.pacman.lives == 0:
-            self.gameover = True
-            self.pacman.show = False
-        
-    def set_events(self):
-        '''
-        Defines specific pygame events
-        '''
-        self.FRAME_SKIPPED = pg.USEREVENT
-
-
 if __name__ == "__main__":
-    
-    #Initializes the GameController class object
+
+    #Initializes the- GameController class object
     game = GameController()
     while game.run:
         game.update()

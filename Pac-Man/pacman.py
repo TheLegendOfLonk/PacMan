@@ -5,6 +5,7 @@ import pygame as pg
 from pygame.locals import *
 from vectors import Vector2
 from settings import *
+from animation import Animation
 
 class Pacman():
     '''
@@ -22,7 +23,7 @@ class Pacman():
     color : tuple
         Tuple of the RGB-value
     position : Vector2
-        Starting position
+        Pac-Man's position on the board
     direction : Vector2
         Current direction
     not_moved : bool
@@ -92,18 +93,28 @@ class Pacman():
         self.lives = 5
         self.life_sprite = _map.sprites.get('life')
         #self.startImage = self.spritesheet.getImage()
-        #TODO: self.animation = None
-        #self.animation_list = {}
-        #self.animations()
-        #self.death_animation = False
+        self.sprite = _map.sprites.get('pacman_closed')
+        self.animation = None
+        self.previous_anim = None
+        self.animation_list = {}
+        self.eating_animation_list = {}
+        self.define_animations()
+        self.death_animation = False
         self.stop_frame = False
         self.show = True
+        self.pellet_anim = 0
+        self.assign_eating_anim = {
+            self.animation_list["left"].name: self.eating_animation_list["left"],
+            self.animation_list["right"].name: self.eating_animation_list["right"],
+            self.animation_list["up"].name: self.eating_animation_list["up"],
+            self.animation_list["down"].name: self.eating_animation_list["down"]
+        }
 
     def update(self, deltatime, _map):
         '''
         Updates the position of pacman, checks whether he is on a node and manage direction changes
 
-        Parameter
+        Parameters
         ----------
         deltatime : float
             Changes with different FPS, so that all movement is independent of FPS
@@ -115,7 +126,7 @@ class Pacman():
 
         #Move to the faced direction
         self.position += self.direction*self.speed*deltatime
-        #TODO: self.update_Animations(deltatime)
+        #TODO: self.update_animations(deltatime)
 
         #Get the current tile pacman is on
         tile = self.get_tile()
@@ -194,6 +205,10 @@ class Pacman():
                 direction = self.direction
                 if not self.move_on_node(node, direction, _map):
                     self.direction = STOP
+        
+        _map.teleport_check(self)
+
+        self.update_animations(deltatime)
 
     def move_on_node(self, node, direction, _map):
         '''
@@ -279,8 +294,8 @@ class Pacman():
         '''
         TEMPORARY: Draws a circle on pacman's position
         '''
-        pos = self.position.as_int()
-        pg.draw.circle(screen, self.color, pos, self.radius)
+        pos = (self.position - Vector2(TILEWIDTH, TILEHEIGHT)).as_int()
+        screen.blit(self.sprite, pos)
         #TODO: add Pacman animation and sprite
 
     def get_tile(self):
@@ -377,6 +392,126 @@ class Pacman():
             if self.direction.y != 0:
                 self.position.x = int(tile.x * TILEWIDTH + TILEWIDTH / 2)
 
+    def define_animations(self):
+        anim = Animation("looping", "right")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        anim.add_frame('pacman_open2.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        self.animation_list["right"] = anim
+        self.animation = anim
+        self.previous_anim = anim
+
+        anim = Animation("looping", "left")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        anim.add_frame('pacman_open2.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        self.animation_list["left"] = anim
+
+        anim = Animation("looping", "up")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        anim.add_frame('pacman_open2.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        self.animation_list["up"] = anim
+
+        anim = Animation("looping", "down")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        anim.add_frame('pacman_open2.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        self.animation_list["down"] = anim
+
+        anim = Animation("singular", "right")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        anim.add_frame('pacman_open2.png', 0, False)
+        anim.add_frame('pacman_open1.png', 0, False)
+        self.eating_animation_list["right"] = anim
+
+        anim = Animation("singular", "left")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        anim.add_frame('pacman_open2.png', 0, True)
+        anim.add_frame('pacman_open1.png', 0, True)
+        self.eating_animation_list["left"] = anim
+
+        anim = Animation("singular", "up")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        anim.add_frame('pacman_open2.png', 90, False)
+        anim.add_frame('pacman_open1.png', 90, False)
+        self.eating_animation_list["up"] = anim
+
+        anim = Animation("singular", "down")
+        anim.fps = 30
+        anim.add_frame('pacman_closed.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        anim.add_frame('pacman_open2.png', 270, False)
+        anim.add_frame('pacman_open1.png', 270, False)
+        self.eating_animation_list["down"] = anim
+
+        anim = Animation("singular", "death")
+        anim.fps = 10
+        anim.add_frame('pacman_open2.png', 90, False)
+        anim.add_frame('pacman_death2.png', 0, False)
+        anim.add_frame('pacman_death3.png', 0, False)
+        anim.add_frame('pacman_death4.png', 0, False)
+        anim.add_frame('pacman_death5.png', 0, False)
+        anim.add_frame('pacman_death6.png', 0, False)
+        anim.add_frame('pacman_death7.png', 0, False)
+        anim.add_frame('pacman_death8.png', 0, False)
+        anim.add_frame('pacman_death9.png', 0, False)
+        anim.add_frame('pacman_death10.png', 0, False)
+        anim.add_frame('pacman_death11.png', 0, False)
+        self.animation_list['death'] = anim
+
+    def update_animations(self, deltatime):
+        next_frame = True
+        if self.direction == LEFT:
+            self.animation = self.animation_list["left"]
+        elif self.direction == RIGHT:
+            self.animation = self.animation_list["right"]
+        elif self.direction == UP:
+            self.animation = self.animation_list["up"]
+        elif self.direction == DOWN:
+            self.animation = self.animation_list["down"]
+        else:
+            self.animation = self.previous_anim
+            next_frame = False
+
+            
+
+        if self.animation != self.previous_anim:
+            self.pellet_anim = 0
+            for direction, anim in self.animation_list.items():
+                anim.reset()
+            for direction, anim in self.eating_animation_list.items():
+                anim.reset
+        self.previous_anim = self.animation
+        if self.pellet_anim > 0:
+            self.animation = self.eating_animation_list[self.animation.name]
+        self.sprite = self.animation.update(deltatime, next_frame=next_frame)
+        if self.animation.complete:
+            self.animation.reset()
+            self.pellet_anim -= 1
+
     def live_lost(self, screen):
         '''
         Decreases amount of lives by one and returns the current number to detect a Game Over
@@ -387,6 +522,8 @@ class Pacman():
             The game window
         '''
         self.lives -= 1
+        self.animation = self.animation_list["death"]
+        self.death_animation = True
 
         #TODO:call death animation
 
