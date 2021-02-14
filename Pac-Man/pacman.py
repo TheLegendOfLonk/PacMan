@@ -467,6 +467,20 @@ class Pacman():
         anim.add_frame('pacman_open1.png', 270, False)
         self.eating_animation_list["down"] = anim
 
+        anim = Animation("singular", "death")
+        anim.fps = 10
+        anim.add_frame('pacman_open2.png', 90, False)
+        anim.add_frame('pacman_death2.png', 0, False)
+        anim.add_frame('pacman_death3.png', 0, False)
+        anim.add_frame('pacman_death4.png', 0, False)
+        anim.add_frame('pacman_death5.png', 0, False)
+        anim.add_frame('pacman_death6.png', 0, False)
+        anim.add_frame('pacman_death7.png', 0, False)
+        anim.add_frame('pacman_death8.png', 0, False)
+        anim.add_frame('pacman_death9.png', 0, False)
+        anim.add_frame('pacman_death10.png', 0, False)
+        anim.add_frame('pacman_death11.png', 0, False)
+        self.animation_list['death'] = anim
 
     def update_animations(self, deltatime):
         next_frame = True
@@ -485,15 +499,15 @@ class Pacman():
             
 
         if self.animation != self.previous_anim:
+            self.pellet_anim = 0
             for direction, anim in self.animation_list.items():
-                self.pellet_anim = 0
                 anim.reset()
+            for direction, anim in self.eating_animation_list.items():
+                anim.reset
         self.previous_anim = self.animation
         if self.pellet_anim > 0:
-            print(self.pellet_anim)
             self.animation = self.eating_animation_list[self.animation.name]
         else:
-            print("Skipped")
         self.sprite = self.animation.update(deltatime, next_frame=next_frame)
         if self.animation.complete:
             self.animation.reset()

@@ -110,13 +110,18 @@ class GameController(object):
             self.check_pellet_collision()
             self.check_Events()
             self.ghosts.update(deltatime, self.pacman)
-            self.text.update_score(self.score)
+            self.set_highscore()
+            self.text.update_score(self.score, self.highscore)
             self.render()
 
         else:
 
             #TODO:end level, background flashes, game over
             pass
+    
+    def set_highscore(self):
+        if self.highscore < self.score:
+            self.highscore = self.score
 
     def reset(self):
         '''
