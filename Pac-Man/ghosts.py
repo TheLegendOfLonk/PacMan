@@ -70,7 +70,7 @@ class Ghost():
     sprite : pygame.Surface
         The sprite of the ghost
 
-    dot_countdown : int
+    pellet_countdown : int
         A countdown that releases the ghost upon reaching 0
 
     waiting : bool
@@ -148,7 +148,7 @@ class Ghost():
         self.map = _map
         self.next_tile = None
         self.sprite = sprite
-        self.dot_countdown = 0
+        self.pellet_countdown = 0
         self.waiting = False
         self.current_sprite = self.sprite
         self.frightened_sprite = sprite_load('blue_ghost1.png', 32, 32, 0)
@@ -236,7 +236,7 @@ class Ghost():
         for key, value in results.items():
             if value <= min_distance:
                 self.direction = key
-                return
+                return    
     
     def get_directions(self):
         results = dict()
@@ -323,6 +323,9 @@ class Ghost():
         Changes the position of the ghost to the center of the tile
         '''
         self.position = position
+        if self.name == 'inky':
+
+            print(self.position)
     
     def render(self, screen):
         '''
@@ -371,6 +374,7 @@ class Ghost():
         
 class Blinky(Ghost):
     def __init__(self, _map, pacman):
+        self.name = 'blinky'
         sprite = sprite_load('blinky_left1.png', 32, 32, 0)
         super().__init__(_map, Vector2(14 * TILEWIDTH, 14.5 * TILEHEIGHT), sprite, direction=LEFT)
         self.pacman = pacman
@@ -383,10 +387,11 @@ class Blinky(Ghost):
 
 class Pinky(Ghost):
     def __init__(self, _map, pacman):
+        self.name = 'pinky'
         sprite = sprite_load('pinky_left1.png', 32, 32, 0)
         super().__init__(_map, Vector2(14 * TILEWIDTH, 16.5 * TILEHEIGHT), sprite, direction=DOWN)
         self.pacman = pacman
-        self.corner = Vector2(27, 34)
+        self.corner = Vector2(3, -1)
         self.waiting = True
         self.start_release()
         self.set_next_tile()
@@ -408,25 +413,50 @@ class Pinky(Ghost):
 
 
 class Inky(Ghost):
-    def __init__(self, _map, pacman):
-        super().__init__(_map, Vector2(14.5, 15), direction=UP)
+    def __init__(self, _map, pacman,blinky):
+        self.name = 'inky'
+        sprite = sprite_load('inky_left1.png', 32, 32, 0)
+        super().__init__(_map, Vector2(12 * TILEWIDTH, 18 * TILEHEIGHT), sprite, direction=UP)
         self.pacman = pacman
-        self.sprite = self.map.sprite_load('inky_left1.png') 
+        self.waiting = True
+        self.corner = Vector2(27, 34)
+        self.set_next_tile()
+        self.blinky = blinky
+        
+
+    def release(self):
+        super().release()
+        
+    
+    def chase(self):
+        blinky_pos = self.blinky.get_current_tile()
+        vec1 = self.get_tile(self.pacman.position) + self.pacman.direction *  2
+        vec2 = (vec1 - blinky_pos) * 2
+        target = blinky_pos + vec2
+        print(target)
+
+        if self.pacman.direction == UP:
+            target += Vector2(2, 0)
+        self.determine_path(target)
 
 class Clyde(Ghost):
     def __init__(self, _map, pacman):
-        super().__init__(_map, Vector2(14.5, 15), direction=UP)
+        super().__init__(_map, Vector2(16 * TILEWIDTH, 16.5 * TILEHEIGHT), direction=UP)
         self.pacman = pacman
         self.sprite = self.map.sprite_load('clyde_left1.png') 
 
 class AllGhosts():
     def __init__(self, _map, pacman):
         self.pacman = pacman
+        self.blinky = Blinky(_map, pacman)
+        self.pinky = Pinky(_map, pacman)
+        self.inky = Inky(_map, pacman, self.blinky)
+        #self.clyde = Clyde(_map, pacman)
         self.ghosts = [
-            Blinky(_map, pacman),
-            Pinky(_map, pacman),
-            #Inky(_map, pacman),
-            #Clyde(_map, pacman)
+            self.blinky,
+            self.pinky,
+            self.inky,
+            #self.clyde
         ]
         self.frightened_timer = None
         self.chase_timer = None
@@ -453,7 +483,9 @@ class AllGhosts():
             for ghost in self:
                 if ghost.mode < 2:
                     ghost.mode = self.current_mode
-                    ghost.reverse()
+                    if not ghost.waiting:
+                        ghost.reverse()
+                    
                     print("Activated mode", self.current_mode)
             if len(self.chase_time_list) > 0:
                 self.set_chase_timer(self.chase_time_list[0])
@@ -463,12 +495,15 @@ class AllGhosts():
 
         for ghost in self:
             ghost.update(deltatime, pacman)
+    
     def render(self, screen):
         for ghost in self:
             ghost.render(screen)
+    
     def check_events(self, pacman):
         for ghost in self:
             ghost.collision_check(pacman)
+    
     def power_pellet(self):
         if self.chase_timer and not self.frightened_timer:
             self.chase_time -= (datetime.datetime.now() - self.chase_timer).seconds
