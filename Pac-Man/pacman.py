@@ -298,9 +298,10 @@ class Pacman():
         '''
         TEMPORARY: Draws a circle on pacman's position
         '''
-        pos = (self.position - Vector2(TILEWIDTH, TILEHEIGHT)).as_int()
-        screen.blit(self.sprite, pos)
-        #TODO: add Pacman animation and sprite
+        if self.show:
+            pos = (self.position - Vector2(TILEWIDTH, TILEHEIGHT)).as_int()
+            screen.blit(self.sprite, pos)
+            
 
     def get_tile(self):
         '''
@@ -472,7 +473,7 @@ class Pacman():
         self.eating_animation_list["down"] = anim
 
         anim = Animation("singular", "death")
-        anim.fps = 2
+        anim.fps = 1
         anim.add_frame('pacman_open2.png', 90, False)
         anim.add_frame('pacman_death2.png', 0, False)
         anim.add_frame('pacman_death3.png', 0, False)

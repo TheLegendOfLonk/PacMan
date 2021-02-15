@@ -11,6 +11,7 @@ from pellets import AllPellets
 from variables import Variables
 from ghosts import AllGhosts
 from text import AllText
+from fruit import Fruit
 
 
 class GameController(object):
@@ -74,6 +75,7 @@ class GameController(object):
         self.clock = pg.time.Clock()
         self.gameover = False
         self.score = 0
+        self.timer = 0.0
         self.waiting = False
         self.death = False
         self.highscore = 0
@@ -85,6 +87,7 @@ class GameController(object):
         self.text = AllText()
         self.pacman = Pacman(self.map)
         self.ghosts = AllGhosts(self.map, self.pacman)
+        self.fruit = Fruit(self.map)
         self.level = 1
         self.PP_over = pg.USEREVENT
         self.release_after_pellets = [0, 30, 60]
@@ -120,45 +123,73 @@ class GameController(object):
         '''
         Main update loop, updates the entire game each frame
         '''
-        if not self.gameover:
 
-            #time difference between previous and currently rendered picture to make frame
-            #length hardware independent
-            if not self.waiting:
-                deltatime = self.clock.tick(FPS) / 1000
-            else:
-                if self.rend:
-                    self.pacman.update_animations(1 / FPS)
-                    self.render()
-                    if self.pacman.reset:
-                        self.pacman.show = False
-                        print('reset')
-                        self.reset()
-                return
-            self.pacman.update(deltatime, self.map)
-            self.check_pellet_collision()
-            self.check_Events()
-            self.ghosts.update(deltatime, self.pacman, self.pp_sound)
-            self.set_highscore()
-            self.text.update_score(self.score, self.highscore)
-            ghost_events = self.ghosts.check_events(self.pacman,self.pellets_eaten, self.release_after_pellets, self.pp_sound)
-            if self.cruising and self.pellets_eaten >= self.cruising:
-                self.ghosts.cruising()
-                self.cruising = False
-            if ghost_events == 3:
-                self.release_after_pellets.pop(0)
-            elif ghost_events == 2:
-                self.waiting = True
-                pg.time.wait(1000)
-                self.render()
-                self.waiting = False
-                self.check_death()
-            self.render()
-
+        #time difference between previous and currently rendered picture to make frame
+        #length hardware independent
+        
+        if not self.waiting:
+            deltatime = self.clock.tick(FPS) / 1000
+            
+            if deltatime > 0.020:
+                deltatime = 0.020
+        
         else:
-
-            #TODO:end level, background flashes, game over
-            pass
+           
+            if self.rend:
+                self.pacman.update_animations(1 / FPS)
+                self.render()
+                
+                if self.pacman.reset:
+                    sound.play_sound('death_2.wav', 0.3, 0)
+                    pg.time.wait(200)
+                    sound.play_sound('death_2.wav', 0.3, 0)
+                    pg.time.wait(200)
+                    self.pacman.show = False
+                    
+                    if not self.gameover:
+                        self.reset()
+                    else:
+                        sound.reset()
+            return
+        
+        self.pacman.update(deltatime, self.map)
+        self.check_pellet_collision()
+        self.check_Events()
+        self.check_fruit_events(deltatime)
+        self.ghosts.update(deltatime, self.pacman, self.pp_sound)
+        self.set_highscore()
+        self.text.update_score(self.score, self.highscore)
+        ghost_events = self.ghosts.check_events(self.pacman,self.pellets_eaten, self.release_after_pellets, self.pp_sound)
+        
+        if self.cruising and self.pellets_eaten >= self.cruising:
+            self.ghosts.cruising()
+            self.cruising = False
+        
+        if ghost_events == 3:
+            self.release_after_pellets.pop(0)
+        
+        elif ghost_events == 2:
+            self.waiting = True
+            pg.time.wait(1000)
+            self.render()
+            self.waiting = False
+            self.check_death()
+        
+        elif ghost_events == 1:
+            ghost_points = int(self.ghosts.get_points())
+            self.score += ghost_points
+            self.text.add_temp_text(ghost_points, self.pacman.position - Vector2(TILEWIDTH,0))
+            self.pacman.show = False
+            self.waiting = True
+            self.render()
+            pg.time.wait(1000)
+            for ghost in self.ghosts:
+                ghost.show = True
+            self.waiting = False
+            self.pacman.show = True
+        
+        self.text.update(deltatime)
+        self.render()
         
     def set_highscore(self):
         if self.highscore < self.score:
@@ -182,6 +213,7 @@ class GameController(object):
         pg.display.update()
         pg.time.wait(500)
         self.rend = True
+        self.waiting = True
         self.pacman.reset_self()
         self.ghosts.reset()
         if self.pellets.isEmpty():
@@ -189,7 +221,7 @@ class GameController(object):
             self.pellets.reset()
         self.render()
         pg.time.wait(2000)
-        self.release_after_pellets = [0 + self.pellets_eaten, 10 + self.pellets, 20 + self.pellets_eaten]
+        self.release_after_pellets = [0 + self.pellets_eaten, 10 + self.pellets_eaten, 20 + self.pellets_eaten]
         sound.start()
         sound.background_music('siren_1.wav', 0.2)
         self.death = False
@@ -237,6 +269,7 @@ class GameController(object):
         if self.pellets.isEmpty():
             #no longer show Pac-Man's sprite
             self.pacman.show = False
+            self.ghosts.rend = False
             self.level += 1
             self.reset()
             #TODO: flash background, reset level, reset Pac-Man(save lives and score)
@@ -260,6 +293,15 @@ class GameController(object):
             if event.type == self.PP_over:
                 pass
                 #self.ghosts.pp_over()
+    def check_fruit_events(self, deltatime):
+        self.timer += deltatime
+        if self.timer >= 10 and not self.fruit.delete:
+            self.fruit.update(deltatime)
+            dist = (self.pacman.position - self.fruit.position).magnitude_squared()
+            if dist < 16 ** 2:
+                self.score += self.fruit.points
+                self.fruit.delete = True
+                self.text.add_temp_text(self.fruit.points, self.fruit.position)      
 
     def check_death(self):
         '''
@@ -268,8 +310,11 @@ class GameController(object):
         self.ghosts.rend = False
         self.render()
         self.pacman.live_lost()
+        pg.mixer.stop()
+        pg.mixer.music.stop()
         sound.play_channel('death_1.wav', 0.2, 0, 5)
         self.waiting = True
+       
 
         if self.pacman.lives == 0:
             self.gameover = True
@@ -300,11 +345,12 @@ class GameController(object):
                 self.screen.blit(tile.sprite, (tile.x, tile.y))
 
         self.pellets.render(self.screen)
-        #self.fruit.render(self.screen)
         self.pacman.render(self.screen)
         self.ghosts.render(self.screen)
         self.pacman.render_lives(self.screen)
         self.text.render(self.screen)
+        if self.timer >= 10 and not self.fruit.delete:
+            self.fruit.render(self.screen)
         pg.display.update()
 
 

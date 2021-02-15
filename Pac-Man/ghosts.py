@@ -171,6 +171,7 @@ class Ghost():
         self.define_animations()
         self.show = True
         self.VISUALIZE = True
+        self.flash = False
         #self.animation = None
         #self.animations = {}
     def update(self, deltatime, pacman):
@@ -375,6 +376,7 @@ class Ghost():
                 self.mode = 3
                 sound.play_channel('eat_ghost.wav', 0.15, 0, 4)
                 pp_sound.pause()
+                self.show = False
                 self.retreating = sound.play_channel('retreating.wav', 0.2, -1, 3)
                 self.speed = 160
                 return 1
@@ -450,7 +452,11 @@ class Ghost():
                 self.animation = self.animations["down"]
 
         elif self.mode == 2:
-            self.animation = self.animations['frightened']
+            if self.flash:
+                self.animation = self.animations['frightened_flash']
+            else:
+                self.animation = self.animations['frightened']
+            
         
         elif self.mode == 3:
             if self.direction >= LEFT:
@@ -538,7 +544,7 @@ class Pinky(Ghost):
     def chase(self):
         target = self.get_tile(self.pacman.position) + self.pacman.direction * 4
         if self.pacman.direction == UP:
-            target += Vector2(4, 0)
+            target += Vector2(-4, 0)
         self.determine_path(target)
     
     def release(self):
@@ -590,7 +596,7 @@ class Inky(Ghost):
         self.next_tile = (self.get_current_tile().x, 16.5)
         self.leaving = False
         self.release_order = [RIGHT, UP]
-        self.RELEASE_ORDER = [RIGHT, UP]
+        self.release_counter = 0
         
 
     def release(self):
@@ -599,13 +605,13 @@ class Inky(Ghost):
                 self.position = self.starting_position
                 self.next_tile = (13.5, self.get_current_tile().y)
                 self.leaving = True
-                self.direction = self.release_order[0]
+                self.direction = self.release_order[self.release_counter]
             else:
-                self.direction = self.release_order[0]
+                self.direction = self.release_order[self.release_counter]
                 self.set_next_tile()
 
-            if len(self.release_order) > 1:
-                self.release_order.pop(0)
+            if len(self.release_order) - 1 > self.release_counter:
+                self.release_counter += 1
         else:
             if self.direction == DOWN:
                 self.direction = UP
@@ -630,7 +636,7 @@ class Inky(Ghost):
                 self.speed = 60
             self.leaving = False
             self.position = self.CAGE_ENTRANCE
-            self.release_order = self.RELEASE_ORDER
+            self.release_counter = 0
             self.set_next_tile()
         
     
@@ -661,8 +667,8 @@ class Inky(Ghost):
                 self.position = self.starting_position
                 self.next_tile = (13.5, self.get_current_tile().y)
                 self.leaving = True
-                self.direction = self.release_order[0]
-                self.release_order.pop(0)
+                self.direction = self.release_order[self.release_counter]
+                self.release_counter += 1
                 self.entering = False
                 #stop retreating audio
                 self.mode = self.ghosts.current_mode
@@ -683,7 +689,7 @@ class Clyde(Ghost):
         self.corner = Vector2(0, 34)
         self.next_tile = (self.get_current_tile().x, 16.5)
         self.release_order = [LEFT, UP]
-        self.RELEASE_ORDER = [LEFT, UP]
+        self.release_counter = 0
 
     def chase(self):
         target = self.get_tile(self.pacman.position)
@@ -697,13 +703,13 @@ class Clyde(Ghost):
                 self.position = self.starting_position
                 self.next_tile = (13.5, self.get_current_tile().y)
                 self.leaving = True
-                self.direction = self.release_order[0]
+                self.direction = self.release_order[self.release_counter]
             else:
-                self.direction = self.release_order[0]
+                self.direction = self.release_order[self.release_counter]
                 self.set_next_tile()
 
-            if len(self.release_order) > 1:
-                self.release_order.pop(0)
+            if len(self.release_order) - 1> self.release_counter:
+                self.release_counter += 1
         else:
             if self.direction == DOWN:
                 self.direction = UP
@@ -728,7 +734,7 @@ class Clyde(Ghost):
                 self.speed = 60
             self.leaving = False
             self.position = self.CAGE_ENTRANCE
-            self.release_order = self.RELEASE_ORDER
+            self.release_counter = 0
             self.set_next_tile()
 
     def eaten(self):
@@ -748,8 +754,8 @@ class Clyde(Ghost):
                 self.position = self.starting_position
                 self.next_tile = (13.5, self.get_current_tile().y)
                 self.leaving = True
-                self.direction = self.release_order[0]
-                self.release_order.pop(0)
+                self.direction = self.release_order[self.release_counter]
+                self.release_counter += 1
                 self.entering = False
                 self.mode = self.ghosts.current_mode
                 #stop retreating audio
@@ -758,6 +764,7 @@ class Clyde(Ghost):
                 self.speed = 40
 
 class AllGhosts():
+    #TODO: Timer fix
     def __init__(self, _map, pacman):
         self.map = _map
         self.pacman = pacman
@@ -775,7 +782,7 @@ class AllGhosts():
         self.frightened_timer = None
         self.chase_timer = None
         self.chase_time = None
-        self.chase_time_list = [12, 20, 7, 20, 5, 20, 5]
+        self.chase_time_list = [15, 20, 7, 20, 5, 20, 5]
         self.set_chase_timer(self.chase_time_list[0]) # --------------------------------------
         self.chase_time_list.pop(0)
         self.current_mode = 1
@@ -784,7 +791,7 @@ class AllGhosts():
             ghost.mode = self.current_mode
         
         self.rend = True
-    
+        self.multiplier = 0.5
     def __iter__(self):
         return iter(self.ghosts)
 
@@ -793,6 +800,17 @@ class AllGhosts():
             self.frightened_timer = None
             if self.chase_timer:
                 self.chase_timer = datetime.datetime.now()
+            return
+        if self.frightened_timer and (datetime.datetime.now() - self.frightened_timer).seconds >= 6:
+            difference = (datetime.datetime.now() - self.frightened_timer).microseconds
+            if difference < 250000 or 500000 < difference < 750000:
+                for ghost in self:
+                    if ghost.mode == 2:
+                        ghost.flash = True
+            else:
+                for ghost in self:
+                    ghost.flash = False
+
 
         if self.frightened_timer and (datetime.datetime.now() - self.frightened_timer).seconds >= 8:
             pp_sound.stop()
@@ -816,10 +834,8 @@ class AllGhosts():
                 self.chase_time_list.pop(0)
             else:
                 self.chase_only = True
-
         for ghost in self:
             ghost.update(deltatime, pacman)
-
     def render(self, screen):
         if self.rend:
             for ghost in self:
@@ -833,6 +849,7 @@ class AllGhosts():
         for ghost in self:
             coll = ghost.collision_check(pacman, pp_sound)
             if coll == 1:
+                ret = 1
                 if all(ghost.mode == 3 for ghost in self):
                     self.pp_over()
                     self.frightened_timer = None
@@ -843,6 +860,8 @@ class AllGhosts():
         return ret
     
     def power_pellet(self):
+        if not self.frightened_timer:
+            self.multiplier = 0.5
         if self.chase_timer and not self.frightened_timer:
             self.chase_time -= (datetime.datetime.now() - self.chase_timer).seconds
             print("Remaining:", self.chase_time)
@@ -852,6 +871,7 @@ class AllGhosts():
                 ghost.reverse()
                 ghost.mode = 2
                 ghost.speed = 60
+                ghost.flash = False
                 #ghost.current_sprite = ghost.frightened_sprite
             elif ghost.releasing:
                 ghost.mode = 2
@@ -890,7 +910,7 @@ class AllGhosts():
         self.frightened_timer = None
         self.chase_timer = None
         self.chase_time = None
-        self.chase_time_list = [7, 20, 7, 20, 5, 20, 5]
+        self.chase_time_list = [15, 20, 7, 20, 5, 20, 5]
         self.set_chase_timer(self.chase_time_list[0]) # --------------------------------------
         self.chase_time_list.pop(0)
         self.current_mode = 1
@@ -899,9 +919,13 @@ class AllGhosts():
             ghost.mode = self.current_mode
         
         self.rend = True
+        self.multiplier = 0.5
     def cruising(self):
         self.blinky.cruis = True
         if self.blinky.speed == 80:
             self.blinky.speed = 90
 
+    def get_points(self):
+        self.multiplier *= 2
+        return self.blinky.points * self.multiplier
 #TODO: Cruising Elroy

@@ -14,7 +14,7 @@ class Text(object):
         self.show = show
         self.font = None
         self.textbox = None
-        self.totalTime = 0
+        self.total_time = 0
         self.display_length = 0
         self.init_text()
         self.create_textbox()
@@ -27,12 +27,17 @@ class Text(object):
         self.textbox = self.font.render(self.text, 1, self.color)
         
     def update(self, deltatime):
-        pass      
+        if self.display_length > 0:
+            self.total_time += deltatime
+            if self.total_time >= self.display_length:
+                self.total_time = 0
+                self.show = False
+                self.display_length = 0      
 
     def set_text(self, insert_text_here):
         self.text = insert_text_here
         self.create_textbox()
-    
+
     def render(self, screen):
         if self.show:
             x, y = self.position.as_tuple()
