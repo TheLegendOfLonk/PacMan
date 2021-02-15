@@ -71,13 +71,16 @@ class AllText():
         self.text_list["score_int"].set_text(str(score).zfill(2))
         if score >= highscore:
             self.text_list["highscore_int"].set_text(str(highscore).zfill(5))
+    
+    def update_highscore(self, highscore):
+        self.text_list["highscore_int"].set_text(str(highscore).zfill(5))
 
 
     def stop_showing_ready(self):
         self.text_list["ready"].show = False
 
-    def show_gameover(self):
-        self.text_list["gameover"].show = True
+    def show_gameover(self, boolean):
+        self.text_list["gameover"].show = boolean
 
     def add_temp_text(self, number, position):
         x, y = position.as_tuple()

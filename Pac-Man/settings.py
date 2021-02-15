@@ -7,6 +7,7 @@ import os
 from vectors import Vector2
 
 PATH = os.path.abspath(__file__)[:-12]
+HS_FILE = 'highscore.txt'
 
 #screen settings
 TILEWIDTH = 16

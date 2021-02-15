@@ -8,10 +8,10 @@ import sound
 from map_script import Map
 from pacman import Pacman
 from pellets import AllPellets
-from variables import Variables
 from ghosts import AllGhosts
 from text import AllText
 from fruit import Fruit
+from os import path
 
 
 class GameController(object):
@@ -91,13 +91,40 @@ class GameController(object):
         self.level = 1
         self.PP_over = pg.USEREVENT
         self.release_after_pellets = [0, 30, 60]
+        self.load_highscore()
         self.pp_sound = None
         self.start_game()
         self.cruising = 60
         
         sound.background_music('siren_1.wav', 0.2)
         
-        
+    def load_highscore(self):
+        self.dir = path.dirname(__file__)
+        with open(os.path.join(PATH, "highscore.txt"), "r") as f:
+            print('hello')
+            try:
+                self.highscore = int(f.read())
+                print(self.highscore)
+                self.text.update_highscore(self.highscore)
+            except:
+                self.highscore = 0
+                print('text')
+    
+    def save_highscore(self):
+        path = os.path.join(PATH, "highscore.txt")
+        with open(path) as f: 
+            lines = f.readlines() #read 
+        #modify 
+        lines[0] = str(self.highscore)
+ 
+        with open(path, "w") as f: 
+            try:
+                f.writelines(lines) #write back
+                print('hello')
+            except:
+                self.highscore = 0
+                print("Couldn't save highscore")
+
  
     def set_background(self):
         '''
@@ -218,19 +245,30 @@ class GameController(object):
         self.waiting = True
         self.pacman.reset_self()
         self.ghosts.reset()
+        
         if self.pellets.isEmpty():
             self.pellets_eaten = 0
+            
+            self.text.show_gameover(False)
             self.pellets.reset()
+        
+        sound.start()
+        
+        
+        
         self.render()
         pg.event.get()
         pg.time.wait(2000)
         self.release_after_pellets = [0 + self.pellets_eaten, 10 + self.pellets_eaten, 20 + self.pellets_eaten]
-        sound.start()
         sound.background_music('siren_1.wav', 0.2)
         self.death = False
         self.cruising = 60 + self.pellets_eaten
         self.waiting = False
-
+        if self.gameover:
+            self.pellets_eaten = 0
+            self.text.show_gameover(False)
+            self.pellets.reset()
+            self.start_game()
     def check_pellet_collision(self):
         '''
         Checks for collisions between Pac-Man and all the pellets on the map
@@ -321,9 +359,16 @@ class GameController(object):
 
         if self.pacman.lives == 0:
             self.gameover = True
+            
+            self.save_highscore()
             self.pacman.show = False
             
-            self.text.show_gameover()
+            self.text.show_gameover(True)
+            self.score = 0
+            
+            self.reset()
+            
+            pg.mixer.init()
             
 
     def set_events(self):
