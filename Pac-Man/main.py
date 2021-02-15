@@ -8,7 +8,6 @@ import sound
 from map_script import Map
 from pacman import Pacman
 from pellets import AllPellets
-from variables import Variables
 from ghosts import AllGhosts
 from text import AllText
 from fruit import Fruit
@@ -365,12 +364,14 @@ class GameController(object):
         if self.pacman.lives == 0:
             self.gameover = True
             self.pacman.show = False
-            self.save_highscore()
-            
             self.text.show_gameover()
             
+            self.save_highscore()
+            
+            
+            
             #TODO: reset all
-            pg.quit()
+            
             
 
     def set_events(self):
@@ -410,3 +411,5 @@ if __name__ == "__main__":
     game = GameController()
     while game.run:
         game.update()
+    #save highscore on quit
+    game.save_highscore()
