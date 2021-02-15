@@ -96,8 +96,36 @@ class GameController(object):
         self.cruising = 60
         
         sound.background_music('siren_1.wav', 0.2)
-        
-        
+       
+    def load_highscore(self):
+        '''
+        Load highscore from highscore.text
+        '''
+        with open(os.path.join(PATH, "highscore.txt"), "r") as f:
+            try:
+                self.highscore = int(f.read())
+                print(self.highscore)
+                self.text.update_highscore(self.highscore)
+            except:
+                self.highscore = 0
+                print('text')
+    
+    def save_highscore(self):
+        '''
+        Save highscore in highscore.txt
+        '''
+        path = os.path.join(PATH, "highscore.txt")
+        with open(path) as f: 
+            lines = f.readlines() #read 
+        #modify 
+        lines[0] = str(self.highscore)
+ 
+        with open(path, "w") as f: 
+            try:
+                f.writelines(lines) #write back
+            except:
+                self.highscore = 0
+                print("Couldn't save highscore")   
  
     def set_background(self):
         '''
@@ -112,6 +140,7 @@ class GameController(object):
         
     def start_game(self):
         self.waiting = True
+        self.load_highscore()
         self.update()
         sound.play_sound('game_start.wav', 0.3, 0)
         pg.time.wait(5000)
@@ -183,8 +212,10 @@ class GameController(object):
             self.waiting = True
             self.render()
             pg.time.wait(1000)
+            
             for ghost in self.ghosts:
                 ghost.show = True
+            
             self.waiting = False
             self.pacman.show = True
         
@@ -206,27 +237,35 @@ class GameController(object):
         pg.event.get()
         pg.time.wait(1000)
         self.rend = False
+        
         for row in self.map.tiles:
             pg.event.get()
+            
             for tile in row:
                 self.screen.blit(self.map.tiles[0][0].sprite, (tile.x, tile.y))
                 pg.display.update()
                 pg.time.wait(1)
+        
         pg.display.update()
         pg.time.wait(500)
         self.rend = True
         self.waiting = True
         self.pacman.reset_self()
         self.ghosts.reset()
+        
+        #Level won
         if self.pellets.isEmpty():
             self.pellets_eaten = 0
             self.pellets.reset()
+        
         self.render()
         pg.event.get()
         pg.time.wait(2000)
         self.release_after_pellets = [0 + self.pellets_eaten, 10 + self.pellets_eaten, 20 + self.pellets_eaten]
+        
         sound.start()
         sound.background_music('siren_1.wav', 0.2)
+        
         self.death = False
         self.cruising = 60 + self.pellets_eaten
         self.waiting = False
@@ -263,7 +302,7 @@ class GameController(object):
             if pellet.name == "PowerPellet":
                 pg.mixer.music.pause()
                 
-                self.pp_sound = sound.play_channel('power_pellet.wav', 0.2, -1, 0)
+                self.pp_sound = sound.play_channel('power_pellet.wav', 0.15, -1, 0)
 
                 self.ghosts.power_pellet()
                 pg.time.set_timer(self.PP_over, 8000)
@@ -293,14 +332,17 @@ class GameController(object):
             #when player tries to close the window, the game is no longer permitted to run
             if event.type == pg.QUIT:
                 self.run = False
+            
             if event.type == self.PP_over:
                 pass
                 #self.ghosts.pp_over()
     def check_fruit_events(self, deltatime):
         self.timer += deltatime
+        
         if self.timer >= 10 and not self.fruit.delete:
             self.fruit.update(deltatime)
             dist = (self.pacman.position - self.fruit.position).magnitude_squared()
+            
             if dist < 16 ** 2:
                 self.score += self.fruit.points
                 self.fruit.delete = True
@@ -313,17 +355,22 @@ class GameController(object):
         self.ghosts.rend = False
         self.render()
         self.pacman.live_lost()
+        
         pg.mixer.stop()
         pg.mixer.music.stop()
         sound.play_channel('death_1.wav', 0.2, 0, 5)
         self.waiting = True
-       
+
 
         if self.pacman.lives == 0:
             self.gameover = True
             self.pacman.show = False
+            self.save_highscore()
             
             self.text.show_gameover()
+            
+            #TODO: reset all
+            pg.quit()
             
 
     def set_events(self):
