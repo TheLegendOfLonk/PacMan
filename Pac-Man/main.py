@@ -203,9 +203,11 @@ class GameController(object):
         sound.reset()
         self.render()
         self.waiting = True
+        pg.event.get()
         pg.time.wait(1000)
         self.rend = False
         for row in self.map.tiles:
+            pg.event.get()
             for tile in row:
                 self.screen.blit(self.map.tiles[0][0].sprite, (tile.x, tile.y))
                 pg.display.update()
@@ -220,6 +222,7 @@ class GameController(object):
             self.pellets_eaten = 0
             self.pellets.reset()
         self.render()
+        pg.event.get()
         pg.time.wait(2000)
         self.release_after_pellets = [0 + self.pellets_eaten, 10 + self.pellets_eaten, 20 + self.pellets_eaten]
         sound.start()
